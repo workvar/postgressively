@@ -1,4 +1,4 @@
-name: Release
+name: New release build
 
 # Builds a downloadable PM2 bundle for Windows/Mac/Linux (including arm64 and
 # armv7, for Raspberry Pi) and multi-arch Docker images, attaches everything
