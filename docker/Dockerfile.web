@@ -1,15 +1,23 @@
+# syntax=docker/dockerfile:1
 # Build context: repo root (see docker-compose.yml's `context: ..`)
-FROM node:20-alpine AS build
+#
+# --platform=$BUILDPLATFORM pins the builder stage to the runner's own
+# architecture (amd64 in CI), so `npm ci`/`next build` run natively instead
+# of under QEMU emulation. The final stage has no RUN steps at all, so it
+# needs no emulation regardless of target platform -- it just unpacks the
+# matching node:20-alpine base and copies the already-built output in.
+FROM --platform=$BUILDPLATFORM node:20-alpine AS build
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY web/ ./
 # NEXT_PUBLIC_API_URL is inlined into the browser bundle at build time, so it
 # has to be set here rather than as a runtime env var on the final image.
 # docker-compose.yml passes it via build.args (BACKEND_PUBLIC_URL).
 ARG NEXT_PUBLIC_API_URL=http://localhost:8080
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-RUN mkdir -p public && npm run build
+RUN mkdir -p public
+RUN --mount=type=cache,target=/src/web/.next/cache npm run build
 
 FROM node:20-alpine
 WORKDIR /app

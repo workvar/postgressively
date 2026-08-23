@@ -1,10 +1,22 @@
+# syntax=docker/dockerfile:1
 # Build context: repo root (see docker-compose.yml's `context: ..`)
-FROM golang:1.23-alpine AS build
+#
+# --platform=$BUILDPLATFORM pins the builder stage to the runner's own
+# architecture (amd64 in CI) regardless of which platform this image is
+# being built for, so `go build` cross-compiles natively via GOOS/GOARCH
+# instead of running under QEMU emulation -- the slow part of a multi-arch
+# build. Only the tiny runtime stage below (an `apk add`) needs emulation.
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS build
 WORKDIR /src/agent
 COPY agent/go.mod ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY agent/ ./
-RUN CGO_ENABLED=0 go build -o /out/postggresively-agent ./cmd/agent
+ARG TARGETOS
+ARG TARGETARCH
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -o /out/postggresively-agent ./cmd/agent
 
 FROM alpine:3.20
 # pg_dump, used by the agent's backup endpoint. Kept at the same major

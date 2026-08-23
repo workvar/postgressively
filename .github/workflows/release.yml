@@ -93,6 +93,22 @@ jobs:
           if-no-files-found: error
 
   docker:
+    # One job per image instead of three sequential steps in one job, so
+    # agent/backend/web build in parallel across separate runners. Each gets
+    # its own GitHub Actions cache scope (cache-from/to: type=gha) so a
+    # rebuild only re-does what actually changed -- an unrelated web change
+    # no longer costs a full backend rebuild, and vice versa. The Dockerfiles
+    # themselves build natively via --platform=$BUILDPLATFORM (see the
+    # comments in docker/Dockerfile.*) so QEMU only emulates the couple of
+    # small `apk add` steps, not the actual Go/npm builds -- that's the
+    # biggest single speedup, bigger than caching alone.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: agent, file: docker/Dockerfile.agent, build_args: "" }
+          - { name: backend, file: docker/Dockerfile.backend, build_args: "" }
+          - { name: web, file: docker/Dockerfile.web, build_args: "NEXT_PUBLIC_API_URL=http://localhost:8080" }
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -106,40 +122,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build + push agent
+      - name: Build + push ${{ matrix.name }}
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile.agent
+          file: ${{ matrix.file }}
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: ${{ matrix.build_args }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/postggresively-agent:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/postggresively-agent:latest
+            ghcr.io/${{ github.repository_owner }}/postggresively-${{ matrix.name }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/postggresively-${{ matrix.name }}:latest
 
-      - name: Build + push backend
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/Dockerfile.backend
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/postggresively-backend:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/postggresively-backend:latest
-
-      - name: Build + push web
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/Dockerfile.web
-          platforms: linux/amd64,linux/arm64
-          push: true
-          build-args: |
-            NEXT_PUBLIC_API_URL=http://localhost:8080
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/postggresively-web:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/postggresively-web:latest
+  docker-compose-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Package docker compose files
         run: tar -czf postggresively-${{ github.ref_name }}-docker-compose.tar.gz docker
@@ -150,7 +150,7 @@ jobs:
           path: postggresively-${{ github.ref_name }}-docker-compose.tar.gz
 
   publish-release:
-    needs: [bundle, docker]
+    needs: [bundle, docker, docker-compose-bundle]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
