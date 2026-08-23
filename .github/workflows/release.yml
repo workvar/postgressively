@@ -1,0 +1,165 @@
+name: Release
+
+# Builds a downloadable PM2 bundle for Windows/Mac/Linux (including arm64 and
+# armv7, for Raspberry Pi) and multi-arch Docker images, attaches everything
+# to a GitHub Release for the pushed tag. See release/README.md for what end
+# users do with the bundle, and docker/README.md for the compose stack.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-go:
+    strategy:
+      matrix:
+        include:
+          - { name: linux-amd64, goos: linux, goarch: amd64 }
+          - { name: linux-arm64, goos: linux, goarch: arm64 }
+          - { name: linux-armv7, goos: linux, goarch: arm, goarm: "7" }
+          - { name: darwin-amd64, goos: darwin, goarch: amd64 }
+          - { name: darwin-arm64, goos: darwin, goarch: arm64 }
+          - { name: windows-amd64, goos: windows, goarch: amd64 }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Build agent + backend
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          CGO_ENABLED: "0"
+        run: |
+          set -euo pipefail
+          ext=""
+          [ "${{ matrix.goos }}" = "windows" ] && ext=".exe"
+          mkdir -p "dist/${{ matrix.name }}/bin"
+          (cd agent && go build -o "../dist/${{ matrix.name }}/bin/postggresively-agent${ext}" ./cmd/agent)
+          (cd backend && go build -o "../dist/${{ matrix.name }}/bin/postggresively-backend${ext}" ./cmd/server)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.name }}
+          path: dist/${{ matrix.name }}/bin
+
+  bundle:
+    needs: build-go
+    strategy:
+      matrix:
+        name: [linux-amd64, linux-arm64, linux-armv7, darwin-amd64, darwin-arm64, windows-amd64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: bin-${{ matrix.name }}
+          path: build/postggresively-${{ github.ref_name }}-${{ matrix.name }}/bin
+
+      - name: Assemble bundle
+        run: |
+          set -euo pipefail
+          out="build/postggresively-${{ github.ref_name }}-${{ matrix.name }}"
+          chmod +x "$out"/bin/* 2>/dev/null || true
+
+          rsync -a --exclude node_modules --exclude .next --exclude '.env*' web/ "$out/web/"
+          cp scripts/build-web.mjs "$out/build-web.mjs"
+          cp release/ecosystem.config.js release/config.example.json release/package.json release/README.md "$out/"
+
+      - name: Archive (zip)
+        if: startsWith(matrix.name, 'windows')
+        working-directory: build
+        run: zip -r "postggresively-${{ github.ref_name }}-${{ matrix.name }}.zip" "postggresively-${{ github.ref_name }}-${{ matrix.name }}"
+
+      - name: Archive (tar.gz)
+        if: ${{ !startsWith(matrix.name, 'windows') }}
+        working-directory: build
+        run: tar -czf "postggresively-${{ github.ref_name }}-${{ matrix.name }}.tar.gz" "postggresively-${{ github.ref_name }}-${{ matrix.name }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.name }}
+          path: |
+            build/*.zip
+            build/*.tar.gz
+          if-no-files-found: error
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push agent
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/postggresively-agent:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/postggresively-agent:latest
+
+      - name: Build + push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/postggresively-backend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/postggresively-backend:latest
+
+      - name: Build + push web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.web
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:8080
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/postggresively-web:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/postggresively-web:latest
+
+      - name: Package docker compose files
+        run: tar -czf postggresively-${{ github.ref_name }}-docker-compose.tar.gz docker
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-docker-compose
+          path: postggresively-${{ github.ref_name }}-docker-compose.tar.gz
+
+  publish-release:
+    needs: [bundle, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: archive-*
+          path: release-files
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          generate_release_notes: true
