@@ -1,0 +1,15 @@
+[Unit]
+Description=Postggresively web
+After=network.target postggresively-backend.service
+
+[Service]
+Type=simple
+WorkingDirectory=__ROOT__/web/.next/standalone
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
+ExecStart=/usr/bin/env node server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

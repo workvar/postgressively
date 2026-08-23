@@ -1,0 +1,14 @@
+[Unit]
+Description=Postggresively backend
+After=network.target postggresively-agent.service
+
+[Service]
+Type=simple
+EnvironmentFile=__ROOT__/backend/.env
+WorkingDirectory=__ROOT__/backend
+ExecStart=__ROOT__/bin/postggresively-backend
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

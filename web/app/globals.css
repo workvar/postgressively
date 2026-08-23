@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --canvas: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f2f4f6;
+  --surface-hover: #f7f9fa;
+  --line: #e3e7ea;
+  --line-strong: #ccd3d8;
+
+  /* Text */
+  --fg: #14181c;
+  --fg-muted: #58606a;
+  --fg-subtle: #838d97;
+
+  /* Brand: teal primary, crimson for destructive + key CTAs (Aiven-like) */
+  --accent: #0e7c74;
+  --accent-hover: #0a655e;
+  --accent-soft: #e3f3f1;
+  --accent-fg: #ffffff;
+
+  --brand: #d81e5b;
+  --brand-hover: #bd1650;
+  --brand-soft: #fdeaf0;
+
+  --danger: #c81e4a;
+  --danger-soft: #fceaef;
+  --success: #12734a;
+  --success-soft: #e2f4ea;
+  --warning: #8a5900;
+  --warning-soft: #fcf1dc;
+  --info: #1f5fa8;
+  --info-soft: #e8f0fa;
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 32, 0.05);
+  --shadow-raised: 0 1px 2px rgba(16, 24, 32, 0.05), 0 6px 20px rgba(16, 24, 32, 0.06);
+  --shadow-pop: 0 12px 40px rgba(16, 24, 32, 0.14);
+}
+
+/*
+ * Light mode is enforced. Even if the OS or browser asks for dark, the tokens
+ * above stay in effect and form controls keep their light rendering.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light only;
+  }
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light only;
+  background-color: var(--canvas);
+  forced-color-adjust: none;
+}
+
+body {
+  @apply bg-canvas text-fg;
+  font-size: 14px;
+}
+
+input,
+textarea,
+select,
+button {
+  color-scheme: light only;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

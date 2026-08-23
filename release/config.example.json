@@ -1,0 +1,22 @@
+{
+  "//": "Copy this file to config.json and fill in real values before running npm run setup / npm start.",
+
+  "publicUrl": "http://localhost:3000",
+  "backendUrl": "http://localhost:8080",
+
+  "webPort": 3000,
+  "backendPort": 8080,
+  "agentPort": 8081,
+
+  "postgresHost": "127.0.0.1",
+  "postgresPort": 5432,
+  "postgresUser": "postgres",
+  "postgresPassword": "postgres",
+  "postgresDatabase": "postgres",
+
+  "jwtSecret": "change-me-to-a-long-random-string",
+  "agentToken": "change-me-32-chars-minimum-token-value",
+
+  "allowServiceControl": true,
+  "readOnly": false
+}

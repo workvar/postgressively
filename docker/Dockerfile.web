@@ -1,0 +1,22 @@
+# Build context: repo root (see docker-compose.yml's `context: ..`)
+FROM node:20-alpine AS build
+WORKDIR /src/web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+# NEXT_PUBLIC_API_URL is inlined into the browser bundle at build time, so it
+# has to be set here rather than as a runtime env var on the final image.
+# docker-compose.yml passes it via build.args (BACKEND_PUBLIC_URL).
+ARG NEXT_PUBLIC_API_URL=http://localhost:8080
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+RUN mkdir -p public && npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /src/web/.next/standalone ./
+COPY --from=build /src/web/.next/static ./.next/static
+COPY --from=build /src/web/public ./public
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+EXPOSE 3000
+CMD ["node", "server.js"]

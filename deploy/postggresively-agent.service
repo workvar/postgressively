@@ -1,0 +1,14 @@
+[Unit]
+Description=Postggresively agent
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=__ROOT__/agent/.env
+WorkingDirectory=__ROOT__/agent
+ExecStart=__ROOT__/bin/postggresively-agent
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,17 @@
+{
+  "name": "postggresively-release",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Run Postggresively (agent + backend + web) under PM2. See README.md.",
+  "scripts": {
+    "setup": "node build-web.mjs",
+    "start": "pm2 start ecosystem.config.js && pm2 save",
+    "stop": "pm2 stop ecosystem.config.js",
+    "restart": "pm2 restart ecosystem.config.js",
+    "logs": "pm2 logs",
+    "status": "pm2 status"
+  },
+  "dependencies": {
+    "pm2": "^5.4.2"
+  }
+}
