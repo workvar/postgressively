@@ -32,6 +32,8 @@ Deploy the `.next` output with a Node-compatible host, or configure your platfor
 
 ## Analytics
 
+**Vercel Analytics** is always enabled via `@vercel/analytics` (works when the site is deployed on Vercel with Analytics turned on in the project).
+
 Google Analytics 4 and Microsoft Clarity load only when IDs are set. Copy `.env.example` to `.env.local` (or set them in your host):
 
 ```bash
