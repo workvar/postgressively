@@ -26,7 +26,9 @@ export default function DataTable({ columns, rows }: Props) {
             ))}
           </tr>
         </thead>
-        <tbody>
+        {/* Masked from Microsoft Clarity: these are the operator's actual
+            row previews. See web/lib/telemetry.ts. */}
+        <tbody data-clarity-mask="true">
           {rows.map((row, i) => (
             <Tr key={i}>
               {row.map((v, j) => {

@@ -43,7 +43,13 @@ func (s *Server) handleConnectionTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// A failed dial is a result, not an error: the form shows it inline.
-	writeJSON(w, http.StatusOK, conns.Test(r.Context(), spec, s.cfg.QueryTimeout))
+	res := conns.Test(r.Context(), spec, s.cfg.QueryTimeout)
+	if res.OK {
+		s.telemetry.Track("connection_success", map[string]any{"latency_ms": res.Elapsed})
+	} else {
+		s.telemetry.Track("connection_failed", map[string]any{"error_category": errorCategory(res.Error)})
+	}
+	writeJSON(w, http.StatusOK, res)
 }
 
 // POST /api/connections saves a connection after proving it works.
@@ -70,6 +76,7 @@ func (s *Server) handleConnectionCreate(w http.ResponseWriter, r *http.Request) 
 	s.audit(r, "connection.created", created.Name, map[string]any{
 		"engine": created.Engine, "endpoint": created.Endpoint,
 	})
+	s.telemetry.Track("connection_created", map[string]any{"engine": created.Engine})
 	writeJSON(w, http.StatusCreated, created)
 }
 

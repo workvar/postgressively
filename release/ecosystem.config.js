@@ -64,6 +64,10 @@ module.exports = {
         PG_WEBAUTHN_RPID: rpid,
         PG_WEBAUTHN_NAME: "Postggresively",
         PG_WEBAUTHN_ORIGINS: publicUrl,
+        PG_DATA_DIR: path.join(__dirname, "data"),
+        // No GA4 env vars here: bin/postggresively-backend already has its
+        // analytics credentials baked in at build time (see
+        // backend/internal/telemetry/baked.go and .github/workflows/release.yml).
       },
     },
     {

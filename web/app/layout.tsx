@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import ClarityScript from "@/components/analytics/ClarityScript";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,7 +20,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
-      <body className="min-h-screen bg-canvas text-fg antialiased">{children}</body>
+      <body className="min-h-screen bg-canvas text-fg antialiased">
+        <ClarityScript />
+        {children}
+      </body>
     </html>
   );
 }

@@ -72,19 +72,23 @@ export default function ConnectionForm({
 
         <EnginePicker engines={engines} value={engine} onChange={setEngine} disabled={busy !== null} />
 
-        <Field
-          label={descriptor?.remote ? "Connection string" : "File path"}
-          hint={descriptor ? `Example: ${descriptor.example}` : undefined}
-        >
-          <Textarea
-            value={dsn}
-            onChange={(e) => setDsn(e.target.value)}
-            rows={3}
-            spellCheck={false}
-            className="font-mono text-caption"
-            placeholder={descriptor?.example}
-          />
-        </Field>
+        {/* Masked from Microsoft Clarity: this carries a host, credentials
+            or a file path. See web/lib/telemetry.ts. */}
+        <div data-clarity-mask="true">
+          <Field
+            label={descriptor?.remote ? "Connection string" : "File path"}
+            hint={descriptor ? `Example: ${descriptor.example}` : undefined}
+          >
+            <Textarea
+              value={dsn}
+              onChange={(e) => setDsn(e.target.value)}
+              rows={3}
+              spellCheck={false}
+              className="font-mono text-caption"
+              placeholder={descriptor?.example}
+            />
+          </Field>
+        </div>
 
         <p className="text-caption text-fg-subtle">
           The password is encrypted before it is stored, and is never sent back to the browser.

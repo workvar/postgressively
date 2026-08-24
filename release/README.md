@@ -53,6 +53,18 @@ variables documented in the main repo's `agent/.env.example` and
 `backend/.env.example`, if you want the full list of what's tunable beyond
 what config.example.json shows.
 
+## Analytics
+
+`bin/postggresively-backend` already has its GA4 (product analytics)
+credentials baked in from the build that produced it -- there is no
+config.json field for them, and nothing to set. `clarityProjectId` is the
+one exception: `web/` ships as source in this bundle and is built by `npm
+run setup`, above, which is what reads it. An official download from
+GitHub Releases arrives with this pre-filled; clear it in `config.json` to
+opt out of UI analytics regardless. Either channel can also be turned off
+entirely from the console's Account page after setup, independent of what's
+baked in.
+
 ## Not on Linux/Mac/Windows with a direct Postgres, or want Docker instead?
 
 See `docker/docker-compose.yml` in the full repo (also published as its own

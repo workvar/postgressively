@@ -145,7 +145,9 @@ export default function DataGrid({
   }
 
   return (
-    <div>
+    // Masked from Microsoft Clarity: this is the operator's actual row
+    // data. See web/lib/telemetry.ts.
+    <div data-clarity-mask="true">
       <GridToolbar
         pending={pending}
         editable={editable}

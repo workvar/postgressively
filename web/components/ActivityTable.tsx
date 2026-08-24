@@ -49,15 +49,19 @@ export default function ActivityTable() {
           {rows.map((r) => (
             <Tr key={r.pid}>
               <Td className={`${mono} text-fg-muted`}>{r.pid}</Td>
-              <Td>{r.user ?? "—"}</Td>
-              <Td className="font-medium">{r.database ?? "—"}</Td>
+              {/* User, database and query text are masked from Microsoft
+                  Clarity: see web/lib/telemetry.ts. */}
+              <Td data-clarity-mask="true">{r.user ?? "—"}</Td>
+              <Td className="font-medium" data-clarity-mask="true">{r.database ?? "—"}</Td>
               <Td>
                 <Badge tone={toneForState(r.state)} dot>
                   {r.state ?? "unknown"}
                 </Badge>
               </Td>
               <Td className="tabular-nums text-fg-muted">{r.secondsActive.toFixed(1)}s</Td>
-              <Td className={`max-w-md truncate ${mono} text-fg-muted`}>{r.query ?? ""}</Td>
+              <Td className={`max-w-md truncate ${mono} text-fg-muted`} data-clarity-mask="true">
+                {r.query ?? ""}
+              </Td>
               <Td className="text-right">
                 <Button variant="danger" size="sm" onClick={() => terminate(r.pid)}>
                   Terminate

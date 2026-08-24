@@ -18,5 +18,8 @@
   "agentToken": "change-me-32-chars-minimum-token-value",
 
   "allowServiceControl": true,
-  "readOnly": false
+  "readOnly": false,
+
+  "//telemetry": "GA4 credentials for the agent/backend binaries above are already baked in at build time (backend/internal/telemetry/baked.go) -- there's no field for them here. clarityProjectId is the one exception: web ships as source in this bundle and gets built locally by `npm run setup`, so it can't be baked in the same way. An official download from GitHub Releases has this pre-filled by CI (.github/workflows/release.yml, repository variable CLARITY_PROJECT_ID); clear it to opt out, or fill it in yourself if you're running from a source checkout. Either way, telemetry can be turned off entirely from the console's Account page.",
+  "clarityProjectId": ""
 }

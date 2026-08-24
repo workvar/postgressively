@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var allowedServiceActions = map[string]bool{
@@ -27,6 +28,7 @@ func (s *Server) handleAgentService(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusForbidden, "server is in read-only mode")
 		return
 	}
+	s.telemetry.Track("feature_used", map[string]any{"feature_name": "service_control"})
 	s.proxy(w, func() (map[string]any, error) { return s.agent.Service(r.Context(), action) })
 }
 
@@ -42,7 +44,15 @@ func (s *Server) handleBackupCreate(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "database is required")
 		return
 	}
-	s.proxy(w, func() (map[string]any, error) { return s.agent.Backup(r.Context(), req.Database) })
+	start := time.Now()
+	s.proxy(w, func() (map[string]any, error) {
+		out, err := s.agent.Backup(r.Context(), req.Database)
+		s.telemetry.Track("backup_created", map[string]any{
+			"success":     err == nil,
+			"duration_ms": time.Since(start).Milliseconds(),
+		})
+		return out, err
+	})
 }
 
 func (s *Server) handleAgentLogs(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +69,7 @@ func (s *Server) handleAgentLogs(w http.ResponseWriter, r *http.Request) {
 func (s *Server) proxy(w http.ResponseWriter, fn func() (map[string]any, error)) {
 	out, err := fn()
 	if err != nil {
+		s.telemetry.Track("error", map[string]any{"component": "agent", "error_category": errorCategory(err.Error())})
 		writeErr(w, http.StatusBadGateway, err.Error())
 		return
 	}

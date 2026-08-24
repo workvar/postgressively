@@ -98,7 +98,9 @@ export default function SqlEditor({
   }
 
   return (
-    <div className="relative">
+    // Masked from Microsoft Clarity: query text can contain anything the
+    // operator's schema or data does. See web/lib/telemetry.ts.
+    <div className="relative" data-clarity-mask="true">
       <Textarea
         ref={ref}
         value={value}

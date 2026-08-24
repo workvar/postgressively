@@ -63,6 +63,7 @@ func (s *Server) handleRowChanges(w http.ResponseWriter, r *http.Request) {
 			"updates":    res.Updates,
 			"deletes":    res.Deletes,
 		})
+		s.telemetry.Track("feature_used", map[string]any{"feature_name": "row_editor"})
 	}
 	writeJSON(w, http.StatusOK, res)
 }

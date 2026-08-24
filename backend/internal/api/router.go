@@ -4,10 +4,12 @@ import (
 	"net/http"
 
 	"github.com/postggresively/backend/internal/agentclient"
+	"github.com/postggresively/backend/internal/bugs"
 	"github.com/postggresively/backend/internal/config"
 	"github.com/postggresively/backend/internal/conns"
 	"github.com/postggresively/backend/internal/passkey"
 	"github.com/postggresively/backend/internal/pg"
+	"github.com/postggresively/backend/internal/telemetry"
 )
 
 // Server wires config, database access and the agent client into HTTP handlers.
@@ -20,14 +22,16 @@ import (
 //     Both are nil when no encryption key could be derived, and the
 //     /api/connections routes then report themselves unavailable.
 type Server struct {
-	cfg      *config.Config
-	store    *pg.Store
-	meta     *pg.Store
-	dbs      *pg.Manager
-	conns    *conns.Store
-	registry *conns.Registry
-	agent    *agentclient.Client
-	passkeys *passkey.Service
+	cfg       *config.Config
+	store     *pg.Store
+	meta      *pg.Store
+	dbs       *pg.Manager
+	conns     *conns.Store
+	registry  *conns.Registry
+	agent     *agentclient.Client
+	passkeys  *passkey.Service
+	telemetry *telemetry.Client
+	bugs      *bugs.Client
 }
 
 // Deps groups the collaborators NewServer needs beyond configuration.
@@ -37,18 +41,22 @@ type Deps struct {
 	Registry    *conns.Registry
 	Agent       *agentclient.Client
 	Passkeys    *passkey.Service
+	Telemetry   *telemetry.Client
+	Bugs        *bugs.Client
 }
 
 func NewServer(cfg *config.Config, d Deps) *Server {
 	return &Server{
-		cfg:      cfg,
-		store:    d.Databases.Default(),
-		meta:     d.Databases.Meta(),
-		dbs:      d.Databases,
-		conns:    d.Connections,
-		registry: d.Registry,
-		agent:    d.Agent,
-		passkeys: d.Passkeys,
+		cfg:       cfg,
+		store:     d.Databases.Default(),
+		meta:      d.Databases.Meta(),
+		dbs:       d.Databases,
+		conns:     d.Connections,
+		registry:  d.Registry,
+		agent:     d.Agent,
+		passkeys:  d.Passkeys,
+		telemetry: d.Telemetry,
+		bugs:      d.Bugs,
 	}
 }
 
@@ -72,6 +80,10 @@ func (s *Server) routePublic(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/login", s.handleLogin)
 	mux.HandleFunc("POST /api/login/passkey/begin", s.handlePasskeyLoginBegin)
 	mux.HandleFunc("POST /api/login/passkey/finish", s.handlePasskeyLoginFinish)
+
+	// Public (not just pre-auth) because Clarity, gated by uiAnalytics,
+	// needs this on /login and /setup too, before any session exists.
+	mux.HandleFunc("GET /api/telemetry", s.handleTelemetryGet)
 }
 
 // routeAccount covers the signed-in user's own identity and credentials.
@@ -91,6 +103,11 @@ func (s *Server) routeAccount(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/stepup/passkey/finish", s.requireAuth(s.handleStepUpPasskeyFinish))
 
 	mux.HandleFunc("GET /api/audit", s.requireAuth(s.handleAuditTail))
+
+	mux.HandleFunc("POST /api/telemetry", s.requireAuth(s.handleTelemetrySet))
+
+	mux.HandleFunc("GET /api/bugs", s.requireAuth(s.handleBugsStatus))
+	mux.HandleFunc("POST /api/bugs", s.requireAuth(s.handleBugCreate))
 }
 
 // routeConnections covers the databases the operator connects out to.

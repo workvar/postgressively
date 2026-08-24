@@ -29,6 +29,12 @@ type Config struct {
 	RPID          string
 	RPDisplayName string
 	RPOrigins     []string
+
+	// DataDir holds files the console needs locally rather than in
+	// Postgres -- today just the telemetry queue (internal/telemetry).
+	// Relative to the backend's working directory, matching the
+	// no-root/no-/var/lib philosophy of the rest of the deploy story.
+	DataDir string
 }
 
 func Load() (*Config, error) {
@@ -46,6 +52,8 @@ func Load() (*Config, error) {
 		QueryTimeout:  time.Duration(envInt("PG_QUERY_TIMEOUT_SECONDS", 30)) * time.Second,
 		RPID:          env("PG_WEBAUTHN_RPID", "localhost"),
 		RPDisplayName: env("PG_WEBAUTHN_NAME", "Postggresively"),
+
+		DataDir: env("PG_DATA_DIR", "./data"),
 	}
 	c.RPOrigins = splitList(env("PG_WEBAUTHN_ORIGINS", c.CORSOrigin))
 

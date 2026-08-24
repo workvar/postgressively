@@ -8,17 +8,21 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
 	"github.com/postggresively/backend/internal/agentclient"
 	"github.com/postggresively/backend/internal/api"
 	"github.com/postggresively/backend/internal/auth"
+	"github.com/postggresively/backend/internal/bugs"
 	"github.com/postggresively/backend/internal/config"
 	"github.com/postggresively/backend/internal/conns"
 	"github.com/postggresively/backend/internal/passkey"
 	"github.com/postggresively/backend/internal/pg"
 	"github.com/postggresively/backend/internal/secrets"
+	"github.com/postggresively/backend/internal/telemetry"
+	"github.com/postggresively/backend/internal/version"
 )
 
 func main() {
@@ -77,6 +81,19 @@ func main() {
 		passkeys = nil
 	}
 
+	// Anonymous product analytics. telemetry.MeasurementID/APISecret are
+	// baked in at build time (see internal/telemetry/baked.go), not read
+	// from the environment -- entirely local (and inert) unless this binary
+	// was built by the official release pipeline. Never on the critical
+	// path: New never fails, Track never blocks.
+	tel := telemetry.New(cfg.DataDir, telemetry.MeasurementID, telemetry.APISecret, version.Version)
+	defer tel.Close()
+	tel.TrackInstallation(runtime.GOOS, runtime.GOARCH)
+
+	// Bug reports → GitHub Issues. bugs.Token is baked at build time (see
+	// internal/bugs/baked.go); empty for self-built binaries.
+	bugClient := bugs.New(bugs.Token, bugs.DefaultRepo, nil)
+
 	srv := &http.Server{
 		Addr: cfg.Addr,
 		Handler: api.NewServer(cfg, api.Deps{
@@ -85,6 +102,8 @@ func main() {
 			Registry:    registry,
 			Agent:       agentclient.New(cfg.AgentURL, cfg.AgentToken),
 			Passkeys:    passkeys,
+			Telemetry:   tel,
+			Bugs:        bugClient,
 		}).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}

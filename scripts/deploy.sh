@@ -65,6 +65,10 @@ BACKEND_PORT=${BACKEND_PORT##*:}
 # browser runs on this same machine. Export POSTGGRESIVELY_BACKEND_URL
 # before running this script to point it at this server's real address
 # (e.g. https://db.example.com) if you're accessing it remotely.
+#
+# POSTGGRESIVELY_CLARITY_PROJECT_ID (optional) works the same way: export it
+# before running this script to build in Microsoft Clarity for the web UI.
+# Left unset, web ships without it.
 BACKEND_URL="${POSTGGRESIVELY_BACKEND_URL:-http://127.0.0.1:${BACKEND_PORT}}"
 log "building web (NEXT_PUBLIC_API_URL=$BACKEND_URL; override with POSTGGRESIVELY_BACKEND_URL)"
 POSTGGRESIVELY_BACKEND_URL="$BACKEND_URL" node scripts/build-web.mjs

@@ -43,6 +43,7 @@ func (s *Server) handleQuery(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "empty statement")
 		return
 	}
+	s.telemetry.Track("feature_used", map[string]any{"feature_name": "query_console"})
 
 	results := make([]*pg.QueryResult, 0, len(stmts))
 	for _, stmt := range stmts {

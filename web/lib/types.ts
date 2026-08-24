@@ -121,6 +121,27 @@ export type Me = {
   passkeys: boolean;
 };
 
+/** The operator's telemetry preferences; see lib/telemetry.ts. */
+export type TelemetrySettings = {
+  enabled: boolean;
+  productAnalytics: boolean;
+  uiAnalytics: boolean;
+  /** False when this build has no GA4 credentials configured at all. */
+  configured: boolean;
+};
+
+/** Whether this build can file GitHub Issues from the Account page. */
+export type BugReportStatus = {
+  configured: boolean;
+};
+
+/** A GitHub Issue opened via POST /api/bugs. */
+export type BugReportResult = {
+  url: string;
+  number: number;
+  title: string;
+};
+
 export type Passkey = {
   id: number;
   label: string;

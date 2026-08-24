@@ -73,6 +73,17 @@ services:
       PG_WEBAUTHN_RPID: ${WEBAUTHN_RPID:-localhost}
       PG_WEBAUTHN_NAME: Postggresively
       PG_WEBAUTHN_ORIGINS: ${PUBLIC_URL:-http://localhost:3000}
+      PG_DATA_DIR: /data
+    volumes:
+      - backend-data:/data
+    # Anonymous product analytics (GA4 Measurement Protocol) has no env var
+    # or .env entry here on purpose: the credentials are baked into the
+    # image at build time via ldflags (see docker/Dockerfile.backend), not
+    # read from the environment. A plain `docker compose up -d --build`
+    # here leaves analytics fully local; only the published
+    # ghcr.io/.../postggresively-backend image (built by
+    # .github/workflows/release.yml from a GitHub Actions repository
+    # variable and secret) has real credentials. See docker/README.md.
 
   web:
     build:
@@ -80,6 +91,9 @@ services:
       dockerfile: docker/Dockerfile.web
       args:
         NEXT_PUBLIC_API_URL: ${BACKEND_PUBLIC_URL:-http://localhost:8080}
+        # UI analytics (Microsoft Clarity) is the same story as the
+        # backend's GA4 credentials above: baked in only by the official CI
+        # build (docker/README.md), never read from docker/.env here.
     restart: unless-stopped
     depends_on:
       - backend
@@ -89,3 +103,4 @@ services:
 volumes:
   postgres-data:
   agent-backups:
+  backend-data:

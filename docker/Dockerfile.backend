@@ -13,10 +13,23 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY backend/ ./
 ARG TARGETOS
 ARG TARGETARCH
+# VERSION, GA_*, and GH_BUG_TOKEN are baked into the binary via ldflags
+# below (internal/version.Version, internal/telemetry.*, internal/bugs.Token)
+# -- never read from the environment at runtime. Passed as build args from
+# .github/workflows/release.yml for the published image; defaults keep
+# telemetry and bug reporting inert for a plain `docker compose build`.
+ARG VERSION=dev
+ARG GA_MEASUREMENT_ID=
+ARG GA_API_SECRET=
+ARG GH_BUG_TOKEN=
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
-    go build -o /out/postggresively-backend ./cmd/server
+    go build -ldflags "-X github.com/postggresively/backend/internal/version.Version=${VERSION} \
+                        -X github.com/postggresively/backend/internal/telemetry.MeasurementID=${GA_MEASUREMENT_ID} \
+                        -X github.com/postggresively/backend/internal/telemetry.APISecret=${GA_API_SECRET} \
+                        -X github.com/postggresively/backend/internal/bugs.Token=${GH_BUG_TOKEN}" \
+    -o /out/postggresively-backend ./cmd/server
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates

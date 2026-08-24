@@ -5,9 +5,12 @@ import type { ConnectionTest } from "@/lib/connections";
 
 /** Inline result of the "Test connection" button, success or failure. */
 export default function TestSummary({ result }: { result: ConnectionTest }) {
+  // Masked from Microsoft Clarity: the error text, database name and
+  // version banner can all echo back what was typed into the connection
+  // string above. See web/lib/telemetry.ts.
   if (!result.ok) {
     return (
-      <div className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5">
+      <div className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5" data-clarity-mask="true">
         <p className="text-small font-medium text-danger">Could not connect</p>
         <p className="mt-0.5 break-words font-mono text-caption text-danger">{result.error}</p>
       </div>
@@ -15,7 +18,7 @@ export default function TestSummary({ result }: { result: ConnectionTest }) {
   }
 
   return (
-    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2.5">
+    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2.5" data-clarity-mask="true">
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge tone="success" dot>
           Connected

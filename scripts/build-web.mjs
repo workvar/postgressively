@@ -10,6 +10,8 @@
 // runs as an explicit build step instead of something ecosystem.config.js or
 // a systemd unit could do on its own -- both of those only control the env
 // of an already-built process, which is too late for a NEXT_PUBLIC_* value.
+// NEXT_PUBLIC_CLARITY_PROJECT_ID (web/lib/clarity.ts) is the same kind of
+// value and goes through the same path.
 //
 // Usage:
 //   POSTGGRESIVELY_BACKEND_URL=https://db.example.com:8080 node build-web.mjs
@@ -18,6 +20,9 @@
 // from the server -- it's the address the UI's JavaScript calls directly.
 // Defaults to http://127.0.0.1:8080, which only works when the browser and
 // the backend are on the same machine.
+//
+// POSTGGRESIVELY_CLARITY_PROJECT_ID is optional; leave it unset to ship
+// without Microsoft Clarity at all.
 
 import { existsSync, cpSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
@@ -37,24 +42,30 @@ function findWebDir() {
 
 // In the release bundle there's a config.json (see config.example.json)
 // sitting next to this script; scripts/deploy.sh has no such file and passes
-// the URL via env instead. Env always wins when both are present.
-function backendUrlFromConfig() {
+// these via env instead. Env always wins when both are present.
+function configJSON() {
   const configPath = path.join(scriptDir, "config.json");
-  if (!existsSync(configPath)) return undefined;
+  if (!existsSync(configPath)) return {};
   try {
-    return JSON.parse(readFileSync(configPath, "utf8")).backendUrl;
+    return JSON.parse(readFileSync(configPath, "utf8"));
   } catch {
-    return undefined;
+    return {};
   }
 }
 
 const webDir = findWebDir();
-const backendUrl = process.env.POSTGGRESIVELY_BACKEND_URL ?? backendUrlFromConfig() ?? "http://127.0.0.1:8080";
+const config = configJSON();
+const backendUrl = process.env.POSTGGRESIVELY_BACKEND_URL ?? config.backendUrl ?? "http://127.0.0.1:8080";
+const clarityProjectId = process.env.POSTGGRESIVELY_CLARITY_PROJECT_ID ?? config.clarityProjectId ?? "";
 
 console.log(`[build-web] web dir: ${webDir}`);
 console.log(`[build-web] NEXT_PUBLIC_API_URL: ${backendUrl}`);
+console.log(`[build-web] NEXT_PUBLIC_CLARITY_PROJECT_ID: ${clarityProjectId || "(none)"}`);
 
-writeFileSync(path.join(webDir, ".env.production"), `NEXT_PUBLIC_API_URL=${backendUrl}\n`);
+writeFileSync(
+  path.join(webDir, ".env.production"),
+  `NEXT_PUBLIC_API_URL=${backendUrl}\nNEXT_PUBLIC_CLARITY_PROJECT_ID=${clarityProjectId}\n`
+);
 
 const run = (cmd) => execSync(cmd, { cwd: webDir, stdio: "inherit", shell: true });
 

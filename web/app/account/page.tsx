@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Shell from "@/components/Shell";
 import PasskeyList from "@/components/account/PasskeyList";
 import PasswordForm from "@/components/account/PasswordForm";
+import TelemetryForm from "@/components/account/TelemetryForm";
+import BugReportForm from "@/components/account/BugReportForm";
 import PageHeader from "@/components/layout/PageHeader";
 import Panel from "@/components/ui/Panel";
 import { api } from "@/lib/api";
@@ -43,6 +45,20 @@ export default function AccountPage() {
           }
         >
           <PasswordForm />
+        </Panel>
+
+        <Panel
+          title="Privacy & telemetry"
+          description="What this installation reports about itself, and to whom."
+        >
+          <TelemetryForm />
+        </Panel>
+
+        <Panel
+          title="Report a bug"
+          description="Opens a GitHub Issue on the Postggresively repository. Include steps to reproduce when you can."
+        >
+          <BugReportForm />
         </Panel>
       </div>
     </Shell>
