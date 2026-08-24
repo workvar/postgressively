@@ -1,5 +1,7 @@
 # Postggresively
 
+[![New release build](https://github.com/workvar/postgressively/actions/workflows/release.yml/badge.svg)](https://github.com/workvar/postgressively/actions/workflows/release.yml)
+
 A web console for the Postgres instance running on your server. Three pieces:
 
 | Component | Stack | Role |
