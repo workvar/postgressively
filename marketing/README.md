@@ -30,6 +30,20 @@ npm start
 
 Deploy the `.next` output with a Node-compatible host, or configure your platform's Next.js adapter.
 
+## Analytics
+
+Google Analytics 4 and Microsoft Clarity load only when IDs are set. Copy `.env.example` to `.env.local` (or set them in your host):
+
+```bash
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_CLARITY_PROJECT_ID=xxxxxxxxxxxx
+```
+
+- **GA:** create a GA4 property → Admin → Data streams → Web → Measurement ID (`G-…`)
+- **Clarity:** [clarity.microsoft.com](https://clarity.microsoft.com) → project → Settings → Setup → Project ID
+
+Leave either blank to skip that tool. Scripts use `afterInteractive` so they do not block first paint.
+
 ## Theme
 
 Dark and light mode with a header toggle. Preference is stored in `localStorage` under `pg-theme` and respects `prefers-color-scheme` on first visit.

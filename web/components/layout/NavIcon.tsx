@@ -1,4 +1,6 @@
-const paths: Record<string, JSX.Element> = {
+import type { ReactNode } from "react";
+
+const paths: Record<string, ReactNode> = {
   gauge: (
     <>
       <circle cx="10" cy="10" r="7" />
