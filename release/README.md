@@ -1,5 +1,7 @@
 # Postggresively -- release bundle
 
+> **Note:** The `marketing/` folder is a separate site for public landing and download pages. It is not copied into release archives — only `web/` (the operator console) is bundled.
+
 Prebuilt `agent` and `backend` binaries for this platform, plus the `web`
 source. Requires [Node.js](https://nodejs.org) 18+ and Postgres already
 running somewhere this machine can reach. Nothing else to install; `npm run

@@ -11,6 +11,9 @@ bin/
 web/.next/
 web/out/
 web/next-env.d.ts
+marketing/.next/
+marketing/out/
+marketing/next-env.d.ts
 *.tsbuildinfo
 
 # Dependencies

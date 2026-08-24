@@ -71,6 +71,7 @@ jobs:
           chmod +x "$out"/bin/* 2>/dev/null || true
 
           rsync -a --exclude node_modules --exclude .next --exclude '.env*' web/ "$out/web/"
+          # marketing/ is intentionally excluded — deployed separately
           cp scripts/build-web.mjs "$out/build-web.mjs"
           cp release/ecosystem.config.js release/config.example.json release/package.json release/README.md "$out/"
 

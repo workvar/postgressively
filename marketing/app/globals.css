@@ -1,0 +1,283 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  --canvas: #f8f8f9;
+  --surface: #ffffff;
+  --surface-2: #f0f0f2;
+  --line: #e4e4e7;
+  --fg: #09090b;
+  --fg-muted: #52525b;
+  --fg-subtle: #a1a1aa;
+
+  --accent: #0e7c74;
+  --accent-hover: #0a655e;
+  --accent-soft: rgba(14, 124, 116, 0.1);
+  --accent-glow: rgba(14, 124, 116, 0.25);
+  --accent-glow-strong: rgba(14, 124, 116, 0.35);
+
+  --brand: #d81e5b;
+  --brand-soft: #fdeaf0;
+
+  --hero-glow: rgba(14, 124, 116, 0.14);
+  --orb-1: rgba(14, 124, 116, 0.18);
+  --orb-2: rgba(216, 30, 91, 0.08);
+  --mock-bg: #f8faf9;
+  --cta-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 248, 249, 0.6) 100%);
+  --grid-line: rgba(0, 0, 0, 0.04);
+
+  --shadow-glow: 0 0 120px rgba(14, 124, 116, 0.1);
+  --shadow-panel: 0 1px 1px rgba(0, 0, 0, 0.03), 0 12px 40px rgba(0, 0, 0, 0.07);
+  --shadow-float: 0 32px 80px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --canvas: #050506;
+  --surface: #0e0e10;
+  --surface-2: #161618;
+  --line: #27272a;
+  --fg: #fafafa;
+  --fg-muted: #a1a1aa;
+  --fg-subtle: #71717a;
+
+  --accent: #2dd4bf;
+  --accent-hover: #14b8a6;
+  --accent-soft: rgba(45, 212, 191, 0.1);
+  --accent-glow: rgba(45, 212, 191, 0.2);
+  --accent-glow-strong: rgba(45, 212, 191, 0.35);
+
+  --hero-glow: rgba(45, 212, 191, 0.12);
+  --orb-1: rgba(45, 212, 191, 0.15);
+  --orb-2: rgba(216, 30, 91, 0.06);
+  --mock-bg: #0a0a0c;
+  --cta-bg: linear-gradient(180deg, rgba(14, 14, 16, 0.95) 0%, rgba(5, 5, 6, 0.8) 100%);
+  --grid-line: rgba(255, 255, 255, 0.04);
+
+  --shadow-glow: 0 0 140px rgba(45, 212, 191, 0.08);
+  --shadow-panel: 0 1px 1px rgba(0, 0, 0, 0.3), 0 16px 48px rgba(0, 0, 0, 0.45);
+  --shadow-float: 0 40px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-canvas font-sans text-fg;
+  font-size: 15px;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dark body::before {
+  opacity: 0.05;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--fg);
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo),
+    filter 0.9s var(--ease-out-expo);
+  will-change: opacity, transform, filter;
+}
+
+.reveal-up {
+  transform: translate3d(0, 40px, 0);
+}
+
+.reveal-down {
+  transform: translate3d(0, -32px, 0);
+}
+
+.reveal-left {
+  transform: translate3d(-36px, 0, 0);
+}
+
+.reveal-right {
+  transform: translate3d(36px, 0, 0);
+}
+
+.reveal-scale {
+  transform: scale(0.94);
+}
+
+.reveal-blur {
+  transform: translate3d(0, 28px, 0);
+  filter: blur(10px);
+}
+
+.reveal-none {
+  transform: none;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
+/* Premium surfaces */
+.surface-premium {
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-panel);
+}
+
+.glow-ring {
+  position: relative;
+}
+
+.glow-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-glow), transparent 50%, var(--orb-2));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 32s linear infinite;
+}
+
+/* Floating pills orbit */
+@keyframes pill-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.pill-float {
+  animation: pill-float 5s ease-in-out infinite;
+}
+
+.pill-float-delay-1 {
+  animation-delay: 0.6s;
+}
+
+.pill-float-delay-2 {
+  animation-delay: 1.2s;
+}
+
+.pill-float-delay-3 {
+  animation-delay: 1.8s;
+}
+
+/* Shine on mockup border */
+@keyframes border-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.shine-border {
+  background: linear-gradient(
+    90deg,
+    var(--line) 0%,
+    var(--accent-glow) 25%,
+    var(--line) 50%,
+    var(--accent-glow) 75%,
+    var(--line) 100%
+  );
+  background-size: 200% 100%;
+  animation: border-shine 6s linear infinite;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--fg) 0%, var(--fg-muted) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dark .text-gradient {
+  background: linear-gradient(135deg, #fff 0%, var(--fg-muted) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.accent-gradient {
+  background: linear-gradient(135deg, var(--accent) 0%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
