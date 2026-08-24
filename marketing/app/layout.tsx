@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   description:
     "A self-hosted web console for Postgres and other relational databases. Browse schemas, run SQL, manage backups, and connect multiple engines.",
   applicationName: "Postggresively",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
   openGraph: {
     title: "Postggresively",
     description: "Self-hosted database console for Postgres, MySQL, SQLite, and SQL Server.",
