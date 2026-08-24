@@ -114,25 +114,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: agent, file: docker/Dockerfile.agent, build_args: "" }
-          # VERSION + optional baked secrets for the published backend image.
-          # GH_BUG_TOKEN (secret) enables Account → Report a bug.
-          - {
-              name: backend,
-              file: docker/Dockerfile.backend,
-              build_args: "VERSION=${{ github.ref_name }}\nGH_BUG_TOKEN=${{ secrets.GH_BUG_TOKEN }}",
-            }
-          # NEXT_PUBLIC_CLARITY_PROJECT_ID is optional and blank unless the
-          # repository variable below is set (Settings > Secrets and
-          # variables > Actions > Variables) -- see docker/README.md. Blank
-          # ships this published image without Microsoft Clarity, same as a
-          # local `docker compose build` with no CLARITY_PROJECT_ID in
-          # docker/.env.
-          - {
-              name: web,
-              file: docker/Dockerfile.web,
-              build_args: "NEXT_PUBLIC_API_URL=http://localhost:8080\nNEXT_PUBLIC_CLARITY_PROJECT_ID=${{ vars.CLARITY_PROJECT_ID }}",
-            }
+          - { name: agent, file: docker/Dockerfile.agent }
+          - { name: backend, file: docker/Dockerfile.backend }
+          - { name: web, file: docker/Dockerfile.web }
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -153,7 +137,12 @@ jobs:
           file: ${{ matrix.file }}
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: ${{ matrix.build_args }}
+          # Secrets/vars cannot live in strategy.matrix — pass them here.
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            GH_BUG_TOKEN=${{ secrets.GH_BUG_TOKEN }}
+            NEXT_PUBLIC_API_URL=http://localhost:8080
+            NEXT_PUBLIC_CLARITY_PROJECT_ID=${{ vars.CLARITY_PROJECT_ID }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           tags: |
