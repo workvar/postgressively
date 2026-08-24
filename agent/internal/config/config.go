@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config for the on-server agent. Stdlib only: no external dependencies.
@@ -22,6 +23,11 @@ type Config struct {
 	PGUser    string
 	LogFile   string
 	AllowCtl  bool
+
+	// InstallKind is "pm2", "docker", or empty.
+	InstallKind string
+	// InstallRoot is the PM2 bundle or Docker Compose project directory.
+	InstallRoot string
 }
 
 func Load() (*Config, error) {
@@ -38,6 +44,8 @@ func Load() (*Config, error) {
 		PGUser:         env("AGENT_PG_USER", "postgres"),
 		LogFile:        env("AGENT_PG_LOG_FILE", ""),
 		AllowCtl:       env("AGENT_ALLOW_SERVICE_CONTROL", "true") == "true",
+		InstallKind:    strings.ToLower(strings.TrimSpace(env("AGENT_INSTALL_KIND", ""))),
+		InstallRoot:    env("AGENT_INSTALL_ROOT", ""),
 	}
 	if len(c.Token) < 32 {
 		return nil, errors.New("AGENT_TOKEN is required and must be at least 32 characters")

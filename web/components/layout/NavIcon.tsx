@@ -42,6 +42,21 @@ const paths: Record<string, ReactNode> = {
     </>
   ),
   plus: <path d="M10 4.5v11M4.5 10h11" strokeLinecap="round" />,
+  bug: (
+    <>
+      <circle cx="10" cy="11" r="5.5" />
+      <path d="M10 5.5V3.5M7 4.5l1 1.5M13 4.5l-1 1.5" strokeLinecap="round" />
+      <path d="M5.5 9H3.5M16.5 9H14.5M5.5 13H3.5M16.5 13H14.5" strokeLinecap="round" />
+      <path d="M8.5 11h.01M11.5 11h.01" strokeLinecap="round" />
+    </>
+  ),
+  spark: (
+    <>
+      <path d="M10 2.5v3M10 14.5v3M2.5 10h3M14.5 10h3" strokeLinecap="round" />
+      <path d="m4.5 4.5 2 2M13.5 13.5l2 2M15.5 4.5l-2 2M6.5 13.5l-2 2" strokeLinecap="round" />
+      <circle cx="10" cy="10" r="2.5" />
+    </>
+  ),
 };
 
 export default function NavIcon({ name, className = "" }: { name: string; className?: string }) {

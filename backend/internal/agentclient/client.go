@@ -91,3 +91,24 @@ func (c *Client) Logs(ctx context.Context, lines int) (map[string]any, error) {
 	var out map[string]any
 	return out, c.do(ctx, http.MethodGet, fmt.Sprintf("/v1/logs?lines=%d", lines), nil, &out)
 }
+
+// UpdateCapabilities reports whether the agent can auto-apply updates.
+func (c *Client) UpdateCapabilities(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	return out, c.do(ctx, http.MethodGet, "/v1/update/capabilities", nil, &out)
+}
+
+// UpdateApply starts an async update job on the agent.
+func (c *Client) UpdateApply(ctx context.Context, tag, kind string) (map[string]any, error) {
+	var out map[string]any
+	return out, c.do(ctx, http.MethodPost, "/v1/update/apply", map[string]string{
+		"tag":  tag,
+		"kind": kind,
+	}, &out)
+}
+
+// UpdateStatus polls an in-flight (or last) update job.
+func (c *Client) UpdateStatus(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	return out, c.do(ctx, http.MethodGet, "/v1/update/status", nil, &out)
+}

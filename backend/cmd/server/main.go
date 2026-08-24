@@ -22,6 +22,7 @@ import (
 	"github.com/postggresively/backend/internal/pg"
 	"github.com/postggresively/backend/internal/secrets"
 	"github.com/postggresively/backend/internal/telemetry"
+	"github.com/postggresively/backend/internal/updates"
 	"github.com/postggresively/backend/internal/version"
 )
 
@@ -93,6 +94,7 @@ func main() {
 	// Bug reports → GitHub Issues. bugs.Token is baked at build time (see
 	// internal/bugs/baked.go); empty for self-built binaries.
 	bugClient := bugs.New(bugs.Token, bugs.DefaultRepo, nil)
+	updateChecker := updates.NewChecker(nil, time.Hour)
 
 	srv := &http.Server{
 		Addr: cfg.Addr,
@@ -104,6 +106,7 @@ func main() {
 			Passkeys:    passkeys,
 			Telemetry:   tel,
 			Bugs:        bugClient,
+			Updates:     updateChecker,
 		}).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}

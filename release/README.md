@@ -45,6 +45,11 @@ npm run stop
 see PM2's own docs for your OS) brings the three processes back after a
 reboot.
 
+Official release builds can also update from the console: **Help → Updates**
+checks GitHub Releases and can download the matching archive, replace
+`bin/` + `web/`, rebuild the UI, and restart PM2 (step-up confirmation
+required).
+
 ## What each config.json field maps to
 
 See `ecosystem.config.js` in this folder -- it's a short, readable file, not

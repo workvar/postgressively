@@ -45,6 +45,8 @@ module.exports = {
         AGENT_PG_PORT: String(cfg.postgresPort ?? 5432),
         AGENT_PG_USER: cfg.postgresUser ?? "postgres",
         AGENT_ALLOW_SERVICE_CONTROL: String(cfg.allowServiceControl ?? true),
+        AGENT_INSTALL_KIND: "pm2",
+        AGENT_INSTALL_ROOT: __dirname,
       },
     },
     {
@@ -68,6 +70,8 @@ module.exports = {
         // No GA4 env vars here: bin/postggresively-backend already has its
         // analytics credentials baked in at build time (see
         // backend/internal/telemetry/baked.go and .github/workflows/release.yml).
+        PG_INSTALL_KIND: "pm2",
+        PG_INSTALL_ROOT: __dirname,
       },
     },
     {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/postggresively/agent/internal/config"
 	"github.com/postggresively/agent/internal/pgctl"
+	"github.com/postggresively/agent/internal/update"
 )
 
 // Server exposes the agent's local control API.
@@ -14,6 +15,7 @@ type Server struct {
 	cfg     *config.Config
 	service *pgctl.Service
 	backups *pgctl.Backups
+	updates *update.Manager
 }
 
 func New(cfg *config.Config) *Server {
@@ -21,6 +23,10 @@ func New(cfg *config.Config) *Server {
 		cfg:     cfg,
 		service: pgctl.NewService(cfg),
 		backups: pgctl.NewBackups(cfg),
+		updates: update.New(update.Config{
+			Kind:        cfg.InstallKind,
+			InstallRoot: cfg.InstallRoot,
+		}),
 	}
 }
 

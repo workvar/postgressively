@@ -1,20 +1,18 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { ErrorNote } from "@/components/ui/Panel";
-import { getBugReportStatus, submitBugReport } from "@/lib/bugs";
+import { getBugReportStatus, lastConsolePath, submitBugReport } from "@/lib/bugs";
 import type { BugReportResult } from "@/lib/types";
 
 /**
- * Account-page form that opens a GitHub Issue on the upstream repo via the
- * backend. Official release builds have a baked-in token; self-built
- * binaries show an unavailable message instead.
+ * Form that opens a GitHub Issue on the upstream repo via the backend.
+ * Official release builds have a baked-in token; self-built binaries show
+ * an unavailable message instead.
  */
 export default function BugReportForm() {
-  const pathname = usePathname();
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -37,7 +35,7 @@ export default function BugReportForm() {
       const created = await submitBugReport({
         title,
         description,
-        path: pathname,
+        path: lastConsolePath(),
         userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
       });
       setResult(created);

@@ -35,6 +35,12 @@ type Config struct {
 	// Relative to the backend's working directory, matching the
 	// no-root/no-/var/lib philosophy of the rest of the deploy story.
 	DataDir string
+
+	// InstallKind is "pm2", "docker", or empty (unknown / source install).
+	// Set by the release bundle or compose file; never required for boot.
+	InstallKind string
+	// InstallRoot is the PM2 bundle directory or Docker Compose project dir.
+	InstallRoot string
 }
 
 func Load() (*Config, error) {
@@ -53,7 +59,9 @@ func Load() (*Config, error) {
 		RPID:          env("PG_WEBAUTHN_RPID", "localhost"),
 		RPDisplayName: env("PG_WEBAUTHN_NAME", "Postggresively"),
 
-		DataDir: env("PG_DATA_DIR", "./data"),
+		DataDir:     env("PG_DATA_DIR", "./data"),
+		InstallKind: strings.ToLower(strings.TrimSpace(env("PG_INSTALL_KIND", ""))),
+		InstallRoot: env("PG_INSTALL_ROOT", ""),
 	}
 	c.RPOrigins = splitList(env("PG_WEBAUTHN_ORIGINS", c.CORSOrigin))
 

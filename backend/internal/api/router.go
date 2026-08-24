@@ -10,6 +10,7 @@ import (
 	"github.com/postggresively/backend/internal/passkey"
 	"github.com/postggresively/backend/internal/pg"
 	"github.com/postggresively/backend/internal/telemetry"
+	"github.com/postggresively/backend/internal/updates"
 )
 
 // Server wires config, database access and the agent client into HTTP handlers.
@@ -32,6 +33,7 @@ type Server struct {
 	passkeys  *passkey.Service
 	telemetry *telemetry.Client
 	bugs      *bugs.Client
+	updates   *updates.Checker
 }
 
 // Deps groups the collaborators NewServer needs beyond configuration.
@@ -43,6 +45,7 @@ type Deps struct {
 	Passkeys    *passkey.Service
 	Telemetry   *telemetry.Client
 	Bugs        *bugs.Client
+	Updates     *updates.Checker
 }
 
 func NewServer(cfg *config.Config, d Deps) *Server {
@@ -57,6 +60,7 @@ func NewServer(cfg *config.Config, d Deps) *Server {
 		passkeys:  d.Passkeys,
 		telemetry: d.Telemetry,
 		bugs:      d.Bugs,
+		updates:   d.Updates,
 	}
 }
 
@@ -108,6 +112,10 @@ func (s *Server) routeAccount(mux *http.ServeMux) {
 
 	mux.HandleFunc("GET /api/bugs", s.requireAuth(s.handleBugsStatus))
 	mux.HandleFunc("POST /api/bugs", s.requireAuth(s.handleBugCreate))
+
+	mux.HandleFunc("GET /api/updates", s.requireAuth(s.handleUpdatesGet))
+	mux.HandleFunc("POST /api/updates/apply", s.requireElevated(s.handleUpdatesApply))
+	mux.HandleFunc("GET /api/updates/status", s.requireAuth(s.handleUpdatesStatus))
 }
 
 // routeConnections covers the databases the operator connects out to.

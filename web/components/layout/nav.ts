@@ -14,6 +14,13 @@ export const navGroups: NavGroup[] = [
     ],
   },
   { title: "Operate", items: [{ href: "/server", label: "Server", icon: "server" }] },
+  {
+    title: "Help",
+    items: [
+      { href: "/updates", label: "Updates", icon: "spark" },
+      { href: "/bugs", label: "Report a bug", icon: "bug" },
+    ],
+  },
 ];
 
 const crumbMap: Record<string, string[]> = {
@@ -26,6 +33,8 @@ const crumbMap: Record<string, string[]> = {
   "/server": ["Operate", "Server"],
   "/databases/new": ["Databases", "New database"],
   "/account": ["Account"],
+  "/bugs": ["Help", "Report a bug"],
+  "/updates": ["Help", "Updates"],
 };
 
 export function crumbsFor(pathname: string): string[] {

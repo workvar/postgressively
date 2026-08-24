@@ -81,5 +81,29 @@ func (s *Server) Handler() http.Handler {
 		writeJSON(w, http.StatusOK, out)
 	}))
 
+	mux.HandleFunc("GET /v1/update/capabilities", s.requireToken(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, s.updates.Caps())
+	}))
+
+	mux.HandleFunc("GET /v1/update/status", s.requireToken(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, s.updates.Snapshot())
+	}))
+
+	mux.HandleFunc("POST /v1/update/apply", s.requireToken(func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Tag  string `json:"tag"`
+			Kind string `json:"kind"`
+		}
+		if err := decodeBody(r, &body); err != nil {
+			writeErr(w, http.StatusBadRequest, "invalid body")
+			return
+		}
+		if err := s.updates.Start(r.Context(), body.Tag, body.Kind); err != nil {
+			writeErr(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		writeJSON(w, http.StatusAccepted, s.updates.Snapshot())
+	}))
+
 	return mux
 }

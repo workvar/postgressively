@@ -26,12 +26,16 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.agent
+    image: ghcr.io/workvar/postggresively-agent:${POSTGGRESSIVELY_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - agent-backups:/var/backups/postggresively
+      # Optional: uncomment to allow in-app Docker updates from the console.
+      # - /var/run/docker.sock:/var/run/docker.sock
+      - .:/compose:ro
     environment:
       AGENT_ADDR: 0.0.0.0:8081
       AGENT_TOKEN: ${AGENT_TOKEN}
@@ -45,11 +49,14 @@ services:
       AGENT_PG_USER: ${POSTGRES_USER:-postgres}
       AGENT_PG_LOG_FILE: ""
       AGENT_ALLOW_SERVICE_CONTROL: "false"
+      AGENT_INSTALL_KIND: docker
+      AGENT_INSTALL_ROOT: /compose
 
   backend:
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
+    image: ghcr.io/workvar/postggresively-backend:${POSTGGRESSIVELY_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -74,6 +81,8 @@ services:
       PG_WEBAUTHN_NAME: Postggresively
       PG_WEBAUTHN_ORIGINS: ${PUBLIC_URL:-http://localhost:3000}
       PG_DATA_DIR: /data
+      PG_INSTALL_KIND: docker
+      PG_INSTALL_ROOT: /compose
     volumes:
       - backend-data:/data
     # Anonymous product analytics (GA4 Measurement Protocol) has no env var
@@ -94,6 +103,7 @@ services:
         # UI analytics (Microsoft Clarity) is the same story as the
         # backend's GA4 credentials above: baked in only by the official CI
         # build (docker/README.md), never read from docker/.env here.
+    image: ghcr.io/workvar/postggresively-web:${POSTGGRESSIVELY_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       - backend

@@ -21,6 +21,15 @@ This is the same `AGENT_ALLOW_SERVICE_CONTROL` flag documented in
 `docker compose logs -f`, `docker compose down`, `docker compose down -v`
 (also drops the `postgres-data` volume) work as usual.
 
+## Updates
+
+The console's **Help → Updates** page checks GitHub Releases. For Docker,
+auto-update needs the Docker CLI inside the agent container **and** a
+`docker.sock` mount (commented out in `docker-compose.yml` by default).
+Without that, the page shows the `docker compose pull && up -d` commands
+to run on the host. Set `POSTGGRESSIVELY_VERSION` to a release tag (e.g.
+`v1.2.3`) when pulling published `ghcr.io/workvar/postggresively-*` images.
+
 ## Analytics
 
 There is nothing to configure here -- no `.env` entry, no build arg you're

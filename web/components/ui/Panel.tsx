@@ -7,6 +7,7 @@ export default function Panel({
   children,
   padded = true,
   tint = false,
+  id,
 }: {
   title?: string;
   description?: string;
@@ -14,9 +15,13 @@ export default function Panel({
   children: ReactNode;
   padded?: boolean;
   tint?: boolean;
+  id?: string;
 }) {
   return (
-    <section className="animate-fadeUp overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+    <section
+      id={id}
+      className="animate-fadeUp scroll-mt-20 overflow-hidden rounded-xl border border-line bg-surface shadow-card"
+    >
       {(title || action) && (
         <header
           className={`flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 ${
