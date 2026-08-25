@@ -75,12 +75,12 @@ export const emptyDraft: DraftDatabase = {
   poolSize: 10,
 };
 
-const NAME_RE = /^[a-z_][a-z0-9_]{0,62}$/;
+const NAME_RE = /^[a-z_][a-z0-9_-]{0,62}$/;
 
 export function validateName(name: string): string | null {
   if (!name) return "Give the database a name.";
   if (!NAME_RE.test(name))
-    return "Use lowercase letters, digits and underscores. Must not start with a digit.";
+    return "Use lowercase letters, digits, underscores or hyphens. Must not start with a digit or hyphen.";
   return null;
 }
 

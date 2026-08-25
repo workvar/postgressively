@@ -22,7 +22,7 @@ export default function StepBasics({
           This becomes the Postgres database name and appears in every connection string.
         </p>
         <div className="max-w-sm">
-          <Field label="Database name" hint={nameError ?? "Lowercase letters, digits and underscores."}>
+          <Field label="Database name" hint={nameError ?? "Lowercase letters, digits, underscores or hyphens."}>
             <Input
               value={draft.name}
               onChange={(e) => set({ name: e.target.value.toLowerCase() })}

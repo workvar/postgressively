@@ -4,16 +4,16 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"regexp"
 	"strings"
 )
 
-var identRe = regexp.MustCompile(`^[a-z_][a-z0-9_]{0,62}$`)
-
-// ValidIdent guards every identifier that is interpolated into DDL.
+// ValidIdent guards identifiers interpolated into DDL. Anything Postgres
+// accepts as a quoted identifier is allowed (mixed case, hyphens, spaces);
+// quoteIdent always double-quotes and escapes embedded quotes. The create
+// wizard keeps a stricter client-side name rule for new databases.
 func ValidIdent(name string) error {
-	if !identRe.MatchString(name) {
-		return fmt.Errorf("invalid identifier %q: use 1-63 lowercase letters, digits or underscores, not starting with a digit", name)
+	if name == "" || len(name) > 63 || strings.ContainsRune(name, 0) {
+		return fmt.Errorf("invalid identifier %q: must be 1-63 bytes and contain no null bytes", name)
 	}
 	return nil
 }
