@@ -32,92 +32,97 @@ export const SETUP_OS: { id: SetupOS; label: string }[] = [
   { id: "rpi", label: "Raspberry Pi OS" },
 ];
 
-const DOCKER_GUIDE: SetupGuideContent = {
-  available: true,
-  showHeadlessDownload: true,
-  summary:
-    "Runs Postgres, agent, backend, and web together. Same workflow on every OS — you only need Docker.",
-  prerequisites: [
-    "Docker Desktop (Windows/macOS) or Docker Engine (Linux / Pi)",
-    "Docker Compose v2",
-    "Download postggresively-*-docker-compose.tar.gz from the release above, or clone the repo",
-  ],
-  steps: [
-    {
-      title: "Extract the compose bundle",
-      body: "Unpack the docker-compose release asset, or use the docker/ folder from a git checkout.",
-      code:
-        "# from a release asset\n" +
-        "tar -xzf postggresively-v1.0.0-docker-compose.tar.gz\n" +
-        "cd docker\n\n" +
-        "# or from a clone\n" +
-        "git clone https://github.com/workvar/postgressively.git\n" +
-        "cd postgressively/docker",
-      lang: "bash",
-    },
-    {
-      title: "Configure environment",
-      code:
-        "cp .env.example .env\n" +
-        "# Edit .env: passwords, JWT_SECRET, AGENT_TOKEN,\n" +
-        "# PUBLIC_URL and BACKEND_PUBLIC_URL if browsing from another device",
-      lang: "bash",
-    },
-    {
-      title: "Start the stack",
-      code: "docker compose up -d --build",
-      lang: "bash",
-    },
-    {
-      title: "Open the console",
-      body: "Visit PUBLIC_URL (default http://localhost:3000). First load redirects to /setup to create your account.",
-    },
-    {
-      title: "Day to day",
-      code:
-        "docker compose logs -f          # tail logs\n" +
-        "docker compose restart          # after .env changes\n" +
-        "docker compose down             # stop\n" +
-        "docker compose down -v          # stop + wipe postgres volume",
-      lang: "bash",
-    },
-  ],
-  notes: [
-    "AGENT_ALLOW_SERVICE_CONTROL is off in Docker — start/stop Postgres from the UI is unavailable, but browsing and SQL work normally.",
-    "On Windows and macOS, install Docker Desktop first, then run the commands in its built-in terminal.",
-  ],
-  docsHref: "https://github.com/workvar/postgressively/tree/main/docker",
-};
+/** Fallback when GitHub releases cannot be fetched. */
+export const FALLBACK_RELEASE_TAG = "v1.1.0";
 
-function pm2ArchiveHint(os: SetupOS): string {
+function dockerGuide(tag: string): SetupGuideContent {
+  return {
+    available: true,
+    showHeadlessDownload: true,
+    summary:
+      "Runs Postgres, agent, backend, and web together. Same workflow on every OS — you only need Docker.",
+    prerequisites: [
+      "Docker Desktop (Windows/macOS) or Docker Engine (Linux / Pi)",
+      "Docker Compose v2",
+      "Download postggresively-*-docker-compose.tar.gz from the release above, or clone the repo",
+    ],
+    steps: [
+      {
+        title: "Extract the compose bundle",
+        body: "Unpack the docker-compose release asset, or use the docker/ folder from a git checkout.",
+        code:
+          "# from a release asset\n" +
+          `tar -xzf postggresively-${tag}-docker-compose.tar.gz\n` +
+          "cd docker\n\n" +
+          "# or from a clone\n" +
+          "git clone https://github.com/workvar/postgressively.git\n" +
+          "cd postgressively/docker",
+        lang: "bash",
+      },
+      {
+        title: "Configure environment",
+        code:
+          "cp .env.example .env\n" +
+          "# Edit .env: passwords, JWT_SECRET, AGENT_TOKEN,\n" +
+          "# PUBLIC_URL and BACKEND_PUBLIC_URL if browsing from another device",
+        lang: "bash",
+      },
+      {
+        title: "Start the stack",
+        code: "docker compose up -d --build",
+        lang: "bash",
+      },
+      {
+        title: "Open the console",
+        body: "Visit PUBLIC_URL (default http://localhost:3000). First load redirects to /setup to create your account.",
+      },
+      {
+        title: "Day to day",
+        code:
+          "docker compose logs -f          # tail logs\n" +
+          "docker compose restart          # after .env changes\n" +
+          "docker compose down             # stop\n" +
+          "docker compose down -v          # stop + wipe postgres volume",
+        lang: "bash",
+      },
+    ],
+    notes: [
+      "AGENT_ALLOW_SERVICE_CONTROL is off in Docker — start/stop Postgres from the UI is unavailable, but browsing and SQL work normally.",
+      "On Windows and macOS, install Docker Desktop first, then run the commands in its built-in terminal.",
+    ],
+    docsHref: "https://github.com/workvar/postgressively/tree/main/docker",
+  };
+}
+
+function pm2ArchiveHint(os: SetupOS, tag: string): string {
   switch (os) {
     case "windows":
-      return "postggresively-v1.0.0-windows-amd64.zip";
+      return `postggresively-${tag}-windows-amd64.zip`;
     case "macos":
-      return "postggresively-v1.0.0-darwin-arm64.tar.gz  # or darwin-amd64 on Intel Mac";
+      return `postggresively-${tag}-darwin-arm64.tar.gz  # or darwin-amd64 on Intel Mac`;
     case "rpi":
       return (
-        "postggresively-v1.0.0-linux-armv7.tar.gz  # Pi 3 / 32-bit OS\n" +
-        "# postggresively-v1.0.0-linux-arm64.tar.gz on Pi 4/5 with 64-bit OS"
+        `postggresively-${tag}-linux-armv7.tar.gz  # Pi 3 / 32-bit OS\n` +
+        `# postggresively-${tag}-linux-arm64.tar.gz on Pi 4/5 with 64-bit OS`
       );
     default:
-      return "postggresively-v1.0.0-linux-amd64.tar.gz   # or linux-arm64 on ARM servers";
+      return `postggresively-${tag}-linux-amd64.tar.gz   # or linux-arm64 on ARM servers`;
   }
 }
 
-function pm2ExtractSteps(os: SetupOS): string {
+function pm2ExtractSteps(os: SetupOS, tag: string): string {
   if (os === "windows") {
     return (
       "# PowerShell — adjust path and version\n" +
-      "Expand-Archive -Path ./postggresively-v1.0.0-windows-amd64.zip -DestinationPath ./postggresively\n" +
-      "cd postggresively-v1.0.0-windows-amd64"
+      `Expand-Archive -Path ./postggresively-${tag}-windows-amd64.zip -DestinationPath ./postggresively\n` +
+      `cd postggresively-${tag}-windows-amd64`
     );
   }
-  const archive = pm2ArchiveHint(os).split("\n")[0].trim();
-  return `tar -xzf ${archive}\ncd postggresively-v1.0.0-*`;
+  const archive = pm2ArchiveHint(os, tag).split("\n")[0].trim();
+  return `tar -xzf ${archive}\ncd postggresively-${tag}-*`;
 }
 
-function pm2Guide(os: SetupOS): SetupGuideContent {
+function pm2Guide(os: SetupOS, tag: string): SetupGuideContent {
   return {
     available: true,
     showHeadlessDownload: true,
@@ -131,7 +136,7 @@ function pm2Guide(os: SetupOS): SetupGuideContent {
     steps: [
       {
         title: "Extract the release bundle",
-        code: pm2ExtractSteps(os),
+        code: pm2ExtractSteps(os, tag),
         lang: os === "windows" ? "powershell" : "bash",
       },
       {
@@ -249,9 +254,14 @@ function systemdGuide(os: SetupOS): SetupGuideContent {
   };
 }
 
-export function getSetupGuide(method: SetupMethod, os: SetupOS): SetupGuideContent {
-  if (method === "docker") return DOCKER_GUIDE;
-  if (method === "pm2") return pm2Guide(os);
+export function getSetupGuide(
+  method: SetupMethod,
+  os: SetupOS,
+  latestTag: string = FALLBACK_RELEASE_TAG,
+): SetupGuideContent {
+  const tag = latestTag.trim() || FALLBACK_RELEASE_TAG;
+  if (method === "docker") return dockerGuide(tag);
+  if (method === "pm2") return pm2Guide(os, tag);
   return systemdGuide(os);
 }
 

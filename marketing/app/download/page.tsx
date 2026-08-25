@@ -54,7 +54,7 @@ export default async function DownloadPage() {
         </Reveal>
       )}
 
-      <SetupGuide />
+      <SetupGuide latestTag={releases[0]?.tagName} />
     </div>
   );
 }

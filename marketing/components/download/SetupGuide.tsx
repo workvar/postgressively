@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { METHOD_META, OS_META } from "@/components/icons/SetupIcons";
 import Reveal from "@/components/motion/Reveal";
 import {
+  FALLBACK_RELEASE_TAG,
   detectSetupOS,
   getSetupGuide,
   isMethodAvailable,
@@ -11,7 +12,6 @@ import {
   type SetupOS,
 } from "@/lib/setup-guides";
 import {
-  GITHUB_LATEST_API,
   GITHUB_RELEASES_PAGE,
   headlessDownloadFor,
   type HeadlessVariant,
@@ -20,15 +20,20 @@ import {
 const OS_ORDER: SetupOS[] = ["windows", "macos", "linux", "rpi"];
 const METHOD_ORDER: SetupMethod[] = ["docker", "pm2", "systemd"];
 
-export default function SetupGuide() {
+export default function SetupGuide({
+  latestTag = FALLBACK_RELEASE_TAG,
+}: {
+  latestTag?: string;
+}) {
   const [os, setOs] = useState<SetupOS>("linux");
   const [method, setMethod] = useState<SetupMethod>("docker");
+  const tag = latestTag.trim() || FALLBACK_RELEASE_TAG;
 
   useEffect(() => {
     setOs(detectSetupOS());
   }, []);
 
-  const guide = useMemo(() => getSetupGuide(method, os), [method, os]);
+  const guide = useMemo(() => getSetupGuide(method, os, tag), [method, os, tag]);
   const comboAvailable = isMethodAvailable(method, os);
 
   return (
@@ -41,7 +46,9 @@ export default function SetupGuide() {
             <span className="font-serif italic text-fg-muted">your device</span>
           </h2>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-fg-muted">
-            Select your platform and deploy method. All paths finish at the first-run wizard at{" "}
+            Select your platform and deploy method. Steps use the latest release{" "}
+            <code className="rounded bg-surface-2 px-1.5 py-0.5 text-sm text-fg">{tag}</code>. All paths
+            finish at the first-run wizard at{" "}
             <code className="rounded bg-surface-2 px-1.5 py-0.5 text-sm text-fg">/setup</code>.
           </p>
         </div>
@@ -138,11 +145,11 @@ export default function SetupGuide() {
               }
             />
 
-            <div className="mt-6" key={`${method}-${os}`}>
+            <div className="mt-6" key={`${method}-${os}-${tag}`}>
               {!comboAvailable ? (
                 <EmptyCombo os={os} method={method} onPick={setMethod} />
               ) : (
-                <GuideBody guide={guide} method={method} os={os} />
+                <GuideBody guide={guide} method={method} os={os} latestTag={tag} />
               )}
             </div>
           </div>
@@ -196,18 +203,22 @@ function GuideBody({
   guide,
   method,
   os,
+  latestTag,
 }: {
   guide: ReturnType<typeof getSetupGuide>;
   method: SetupMethod;
   os: SetupOS;
+  latestTag: string;
 }) {
-  const headless = guide.showHeadlessDownload ? headlessDownloadFor(method, os) : null;
+  const headless = guide.showHeadlessDownload
+    ? headlessDownloadFor(method, os, latestTag)
+    : null;
 
   return (
     <div className="space-y-8">
       <p className="text-sm leading-relaxed text-fg-muted md:text-base">{guide.summary}</p>
 
-      {headless && <HeadlessDownloadPanel data={headless} />}
+      {headless && <HeadlessDownloadPanel data={headless} latestTag={latestTag} />}
 
       <div className="rounded-xl border border-line bg-canvas/50 p-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-fg-subtle">Before you start</p>
@@ -259,40 +270,33 @@ function GuideBody({
   );
 }
 
-function HeadlessDownloadPanel({ data }: { data: NonNullable<ReturnType<typeof headlessDownloadFor>> }) {
+function HeadlessDownloadPanel({
+  data,
+  latestTag,
+}: {
+  data: NonNullable<ReturnType<typeof headlessDownloadFor>>;
+  latestTag: string;
+}) {
   return (
     <div className="rounded-xl border border-accent/25 bg-accent-soft/30 p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-accent">
-            Headless download (@latest)
+            Headless download · {latestTag}
           </p>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-fg-muted">{data.intro}</p>
         </div>
         <a
-          href={GITHUB_LATEST_API}
+          href={GITHUB_RELEASES_PAGE}
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 text-xs font-medium text-fg-subtle hover:text-accent"
         >
-          Latest release API →
+          Releases →
         </a>
       </div>
 
-      <p className="mt-4 text-xs text-fg-subtle">
-        Resolves the current tag from{" "}
-        <code className="rounded bg-surface px-1 py-0.5 font-mono text-[11px] text-fg">{GITHUB_LATEST_API}</code>
-        , then downloads from{" "}
-        <code className="rounded bg-surface px-1 py-0.5 font-mono text-[11px] text-fg">
-          github.com/…/releases/download/$TAG/…
-        </code>
-        .{" "}
-        <a href={GITHUB_RELEASES_PAGE} className="text-accent hover:underline">
-          Releases page
-        </a>
-      </p>
-
-      <div className="mt-5 space-y-5">
+      <div className="mt-5 space-y-4">
         {data.variants.map((v) => (
           <HeadlessVariantBlock key={v.label} variant={v} />
         ))}
@@ -305,12 +309,6 @@ function HeadlessVariantBlock({ variant }: { variant: HeadlessVariant }) {
   return (
     <div className="rounded-lg border border-line bg-surface/80 p-4">
       <p className="text-sm font-medium text-fg">{variant.label}</p>
-      <p className="mt-1 break-all font-mono text-[11px] text-fg-subtle">
-        Example:{" "}
-        <a href={variant.exampleUrl} className="text-accent hover:underline">
-          {variant.exampleUrl}
-        </a>
-      </p>
       <div className="mt-3">
         <CodeBlock code={variant.wget} lang="wget" label="wget" />
       </div>
