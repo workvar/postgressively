@@ -99,21 +99,8 @@ type GitHubRelease = {
   }>;
 };
 
-export async function fetchReleases(): Promise<Release[]> {
-  // Short TTL: release notes often appear before CI attaches assets, and a
-  // long cache would keep showing "No downloadable assets" for minutes.
-  const res = await fetch(GITHUB_RELEASES_URL, {
-    headers: { Accept: "application/vnd.github+json" },
-    next: { revalidate: 60 },
-  });
-
-  if (!res.ok) {
-    throw new Error(`GitHub releases unavailable (${res.status})`);
-  }
-
-  const data = (await res.json()) as GitHubRelease[];
-
-  const releases = data.map((r, i) => ({
+function mapReleases(data: GitHubRelease[]): Release[] {
+  return data.map((r, i) => ({
     tagName: r.tag_name,
     name: r.name || r.tag_name,
     publishedAt: r.published_at,
@@ -126,29 +113,31 @@ export async function fetchReleases(): Promise<Release[]> {
       browserDownloadUrl: a.browser_download_url,
     })),
   }));
+}
 
-  // If the newest tag still has no files, bypass cache on the next request
-  // so we pick up assets as soon as publish-release finishes.
-  if (releases[0] && releases[0].assets.length === 0) {
+export async function fetchReleases(): Promise<Release[]> {
+  // Keep TTL short: tags/notes often land before CI attaches assets. A long
+  // cache would keep the download page showing "No downloadable assets".
+  const res = await fetch(GITHUB_RELEASES_URL, {
+    headers: { Accept: "application/vnd.github+json" },
+    next: { revalidate: 60 },
+  });
+
+  if (!res.ok) {
+    throw new Error(`GitHub releases unavailable (${res.status})`);
+  }
+
+  const releases = mapReleases((await res.json()) as GitHubRelease[]);
+
+  // If the newest tag still has no files, bypass cache so the next paint
+  // picks up assets as soon as publish-release finishes.
+  if (releases[0]?.assets.length === 0) {
     const fresh = await fetch(GITHUB_RELEASES_URL, {
       headers: { Accept: "application/vnd.github+json" },
       cache: "no-store",
     });
     if (fresh.ok) {
-      const again = (await fresh.json()) as GitHubRelease[];
-      return again.map((r, i) => ({
-        tagName: r.tag_name,
-        name: r.name || r.tag_name,
-        publishedAt: r.published_at,
-        body: r.body,
-        isLatest: i === 0,
-        assets: r.assets.map((a) => ({
-          name: a.name,
-          size: a.size,
-          downloadCount: a.download_count,
-          browserDownloadUrl: a.browser_download_url,
-        })),
-      }));
+      return mapReleases((await fresh.json()) as GitHubRelease[]);
     }
   }
 
