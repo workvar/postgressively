@@ -15,9 +15,14 @@ cp config.example.json config.json
 # connection details. See the comments in config.example.json.
 
 npm install       # installs PM2 into this folder
-npm run setup     # builds web/ once, using config.json's backendUrl
+npx pm2 update    # if PM2 warns that in-memory version is out of date
+npm run setup     # builds web/ into .next/standalone (required before start)
 npm start         # starts agent, backend, and web under PM2
 ```
+
+`npm run setup` must succeed before `npm start` / `npm run restart`. If you see
+`Script not found: …/web/.next/standalone/server.js`, the UI was never built
+(or the build failed) — re-run `npm run setup` and check its output.
 
 Then open `config.json`'s `publicUrl` in a browser (`http://localhost:3000`
 by default). First load redirects to `/setup` to create the console account.

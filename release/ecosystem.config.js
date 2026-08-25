@@ -27,6 +27,39 @@ const databaseUrl =
   cfg.postgresUrl ??
   `postgres://${cfg.postgresUser}:${cfg.postgresPassword}@${cfg.postgresHost}:${cfg.postgresPort}/${cfg.postgresDatabase}`;
 
+/**
+ * Resolve where Next put standalone/server.js after `npm run setup`.
+ * Prefer `.next/standalone/server.js`; accept one nested folder if needed.
+ */
+function resolveWebStandalone() {
+  const webDir = path.join(__dirname, "web");
+  const standaloneRoot = path.join(webDir, ".next", "standalone");
+  const direct = path.join(standaloneRoot, "server.js");
+  if (fs.existsSync(direct)) {
+    return { cwd: standaloneRoot, script: "server.js" };
+  }
+  if (fs.existsSync(standaloneRoot)) {
+    for (const name of fs.readdirSync(standaloneRoot)) {
+      if (name === "node_modules" || name === ".next") continue;
+      const nestedDir = path.join(standaloneRoot, name);
+      const nested = path.join(nestedDir, "server.js");
+      if (fs.existsSync(nested)) {
+        return { cwd: nestedDir, script: "server.js" };
+      }
+    }
+  }
+  console.error(
+    [
+      "Web standalone build not found.",
+      `Expected: ${direct}`,
+      "Run `npm run setup` first (builds web/.next/standalone), then `npm start` / `npm run restart`.",
+    ].join("\n")
+  );
+  process.exit(1);
+}
+
+const webStandalone = resolveWebStandalone();
+
 module.exports = {
   apps: [
     {
@@ -76,9 +109,9 @@ module.exports = {
     },
     {
       name: "postggresively-web",
-      script: "server.js",
+      script: webStandalone.script,
       // `npm run setup` builds this via build-web.mjs (output: "standalone").
-      cwd: path.join(__dirname, "web", ".next", "standalone"),
+      cwd: webStandalone.cwd,
       env: {
         PORT: String(cfg.webPort ?? 3000),
         HOSTNAME: "0.0.0.0",

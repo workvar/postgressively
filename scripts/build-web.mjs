@@ -24,7 +24,7 @@
 // POSTGGRESIVELY_CLARITY_PROJECT_ID is optional; leave it unset to ship
 // without Microsoft Clarity at all.
 
-import { existsSync, cpSync, writeFileSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, cpSync, writeFileSync, rmSync, readFileSync, readdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -53,6 +53,30 @@ function configJSON() {
   }
 }
 
+/**
+ * Next may place server.js at `.next/standalone/server.js` or, in some
+ * monorepo / tracing layouts, nested as `.next/standalone/<name>/server.js`.
+ * Prefer the shallow path; fall back to a one-level nested match.
+ */
+export function findStandaloneServer(webDir) {
+  const standaloneRoot = path.join(webDir, ".next", "standalone");
+  const direct = path.join(standaloneRoot, "server.js");
+  if (existsSync(direct)) {
+    return { serverJs: direct, cwd: standaloneRoot };
+  }
+  if (!existsSync(standaloneRoot)) {
+    return null;
+  }
+  for (const entry of readdirSync(standaloneRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name === "node_modules" || entry.name === ".next") continue;
+    const nested = path.join(standaloneRoot, entry.name, "server.js");
+    if (existsSync(nested)) {
+      return { serverJs: nested, cwd: path.join(standaloneRoot, entry.name) };
+    }
+  }
+  return null;
+}
+
 const webDir = findWebDir();
 const config = configJSON();
 const backendUrl = process.env.POSTGGRESIVELY_BACKEND_URL ?? config.backendUrl ?? "http://127.0.0.1:8080";
@@ -69,23 +93,33 @@ writeFileSync(
 
 const run = (cmd) => execSync(cmd, { cwd: webDir, stdio: "inherit", shell: true });
 
-if (!existsSync(path.join(webDir, "node_modules"))) {
+// Always reinstall so package.json upgrades (e.g. Next major) land before build.
+// Skipping when node_modules exists left Pi installs on stale Next after a pull.
+const lockfile = path.join(webDir, "package-lock.json");
+if (existsSync(lockfile)) {
   console.log("[build-web] installing dependencies (npm ci)");
   run("npm ci");
 } else {
-  console.log("[build-web] node_modules already present, skipping install");
+  console.log("[build-web] installing dependencies (npm install)");
+  run("npm install");
 }
 
 console.log("[build-web] building (npm run build)");
 run("npm run build");
 
-// `output: "standalone"` doesn't copy static assets or public/ in on its
-// own -- https://nextjs.org/docs/app/api-reference/config/next-config-js/output
-const standaloneDir = path.join(webDir, ".next", "standalone");
-if (!existsSync(standaloneDir)) {
-  throw new Error(`expected ${standaloneDir} after build -- is output: "standalone" set in next.config.mjs?`);
+const located = findStandaloneServer(webDir);
+if (!located) {
+  throw new Error(
+    `expected server.js under ${path.join(webDir, ".next", "standalone")} after build — ` +
+      `is output: "standalone" set in next.config.mjs, and did the build succeed?`
+  );
 }
 
+const { serverJs, cwd: standaloneDir } = located;
+console.log(`[build-web] standalone server: ${serverJs}`);
+
+// `output: "standalone"` doesn't copy static assets or public/ in on its
+// own -- https://nextjs.org/docs/app/api-reference/config/next-config-js/output
 const staticSrc = path.join(webDir, ".next", "static");
 const staticDest = path.join(standaloneDir, ".next", "static");
 rmSync(staticDest, { recursive: true, force: true });
@@ -96,4 +130,5 @@ if (existsSync(publicSrc)) {
   cpSync(publicSrc, path.join(standaloneDir, "public"), { recursive: true });
 }
 
-console.log(`[build-web] done: ${path.join(standaloneDir, "server.js")}`);
+console.log(`[build-web] done: ${serverJs}`);
+console.log(`[build-web] PM2 cwd should be: ${standaloneDir}`);
