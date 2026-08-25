@@ -33,7 +33,7 @@ export const SETUP_OS: { id: SetupOS; label: string }[] = [
 ];
 
 /** Fallback when GitHub releases cannot be fetched. */
-export const FALLBACK_RELEASE_TAG = "v1.1.0";
+export const FALLBACK_RELEASE_TAG = "v1.1.1";
 
 function dockerGuide(tag: string): SetupGuideContent {
   return {
