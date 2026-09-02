@@ -47,8 +47,31 @@ const config: Config = {
       transitionTimingFunction: { apple: "cubic-bezier(0.25, 0.1, 0.25, 1)" },
       keyframes: {
         fadeUp: { from: { opacity: "0", transform: "translateY(6px)" }, to: { opacity: "1", transform: "none" } },
+        pulseSoft: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.82", transform: "scale(0.97)" },
+        },
+        pulseDot: {
+          "0%, 100%": { opacity: "0.35", transform: "scale(0.85)" },
+          "50%": { opacity: "1", transform: "scale(1)" },
+        },
+        waitRing: {
+          "0%": { transform: "scale(0.92)", opacity: "0.55" },
+          "70%": { transform: "scale(1.12)", opacity: "0" },
+          "100%": { transform: "scale(1.12)", opacity: "0" },
+        },
+        progressShimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
-      animation: { fadeUp: "fadeUp 0.28s cubic-bezier(0.25, 0.1, 0.25, 1) both" },
+      animation: {
+        fadeUp: "fadeUp 0.28s cubic-bezier(0.25, 0.1, 0.25, 1) both",
+        pulseSoft: "pulseSoft 1.6s cubic-bezier(0.25, 0.1, 0.25, 1) infinite",
+        pulseDot: "pulseDot 1s cubic-bezier(0.25, 0.1, 0.25, 1) infinite",
+        waitRing: "waitRing 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite",
+        progressShimmer: "progressShimmer 1.4s linear infinite",
+      },
     },
   },
   plugins: [],
