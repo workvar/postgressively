@@ -24,8 +24,9 @@ export type UpdateJobStatus = {
 
 const DISMISS_KEY = "pg:update-dismissed";
 
-export function getUpdateInfo() {
-  return api.get<UpdateInfo>("/api/updates");
+export function getUpdateInfo(opts?: { refresh?: boolean }) {
+  const q = opts?.refresh ? "?refresh=1" : "";
+  return api.get<UpdateInfo>(`/api/updates${q}`);
 }
 
 export function applyUpdate(tag?: string) {

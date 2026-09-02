@@ -23,14 +23,16 @@ type updateStatusResponse struct {
 }
 
 // GET /api/updates
+// Optional ?refresh=1 bypasses the GitHub Releases cache.
 func (s *Server) handleUpdatesGet(w http.ResponseWriter, r *http.Request) {
 	out := updateStatusResponse{
 		Current: version.Version,
 		Kind:    s.cfg.InstallKind,
 	}
 
+	force := r.URL.Query().Get("refresh") == "1" || r.URL.Query().Get("refresh") == "true"
 	if s.updates != nil {
-		if rel, err := s.updates.Latest(r.Context()); err != nil {
+		if rel, err := s.updates.Latest(r.Context(), force); err != nil {
 			out.CheckError = "could not check for updates"
 		} else {
 			out.Latest = rel.Tag
@@ -83,7 +85,7 @@ func (s *Server) handleUpdatesApply(w http.ResponseWriter, r *http.Request) {
 
 	tag := strings.TrimSpace(req.Tag)
 	if tag == "" && s.updates != nil {
-		if rel, err := s.updates.Latest(r.Context()); err == nil {
+		if rel, err := s.updates.Latest(r.Context(), false); err == nil {
 			tag = rel.Tag
 		}
 	}

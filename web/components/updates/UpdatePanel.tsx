@@ -17,14 +17,14 @@ export default function UpdatePanel() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const refresh = useCallback(() => {
-    getUpdateInfo()
+  const refresh = useCallback((force = false) => {
+    getUpdateInfo(force ? { refresh: true } : undefined)
       .then(setInfo)
       .catch((e) => setError(e instanceof Error ? e.message : "could not check for updates"));
   }, []);
 
   useEffect(() => {
-    refresh();
+    refresh(false);
   }, [refresh]);
 
   useEffect(() => {
@@ -129,7 +129,7 @@ export default function UpdatePanel() {
 
       {error && <ErrorNote>{error}</ErrorNote>}
 
-      <Button type="button" variant="secondary" size="sm" onClick={refresh} disabled={busy}>
+      <Button type="button" variant="secondary" size="sm" onClick={() => refresh(true)} disabled={busy}>
         Check again
       </Button>
     </div>

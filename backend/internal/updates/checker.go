@@ -50,10 +50,11 @@ func NewChecker(httpClient *http.Client, ttl time.Duration) *Checker {
 func (c *Checker) SetAPIBase(base string) { c.apiBase = base }
 
 // Latest returns the cached or freshly fetched latest release.
-func (c *Checker) Latest(ctx context.Context) (*Release, error) {
+// When force is true, the cache is bypassed and GitHub is queried again.
+func (c *Checker) Latest(ctx context.Context, force bool) (*Release, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.cached != nil && time.Since(c.cachedAt) < c.ttl {
+	if !force && c.cached != nil && time.Since(c.cachedAt) < c.ttl {
 		cp := *c.cached
 		return &cp, nil
 	}
