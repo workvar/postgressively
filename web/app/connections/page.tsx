@@ -65,7 +65,7 @@ export default function ConnectionsPage() {
         }
         action={
           !adding && (
-            <Button variant="brand" size="sm" onClick={() => setAdding(true)}>
+            <Button variant="primary" size="sm" onClick={() => setAdding(true)}>
               Add connection
             </Button>
           )

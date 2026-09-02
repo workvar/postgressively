@@ -54,7 +54,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
             <Link href="/databases/new">
-              <Button variant="brand" size="sm">
+              <Button variant="primary" size="sm">
                 New database
               </Button>
             </Link>

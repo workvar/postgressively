@@ -102,7 +102,7 @@ export default function NewDatabasePage() {
                 Continue
               </Button>
             ) : (
-              <Button variant="brand" size="md" disabled={!canCreate || busy} onClick={create}>
+              <Button variant="primary" size="md" disabled={!canCreate || busy} onClick={create}>
                 {busy ? "Creating…" : "Create database"}
               </Button>
             )}

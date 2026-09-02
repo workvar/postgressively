@@ -29,7 +29,10 @@ export function cleanVersion(raw?: string): string {
   return raw.replace("postgres (PostgreSQL) ", "PostgreSQL ").trim();
 }
 
-export function serviceUri(i: Instance, password = "PASSWORD"): string {
+/** Shown in connection strings when the real password is unknown. */
+export const PASSWORD_PLACEHOLDER = "${PASSWORD}";
+
+export function serviceUri(i: Instance, password = PASSWORD_PLACEHOLDER): string {
   return `postgresql://${i.owner}:${password}@${i.host}:${i.port}/${i.name}?sslmode=${i.sslMode}`;
 }
 

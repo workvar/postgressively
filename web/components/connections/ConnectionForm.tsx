@@ -108,7 +108,7 @@ export default function ConnectionForm({
           <Button variant="secondary" onClick={() => run("test")} disabled={!ready || busy !== null}>
             {busy === "test" ? "Testing…" : "Test connection"}
           </Button>
-          <Button variant="brand" onClick={() => run("save")} disabled={!ready || busy !== null}>
+          <Button variant="primary" onClick={() => run("save")} disabled={!ready || busy !== null}>
             {busy === "save" ? "Saving…" : "Save connection"}
           </Button>
         </div>

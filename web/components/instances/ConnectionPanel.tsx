@@ -5,6 +5,7 @@ import Panel from "@/components/ui/Panel";
 import Tabs from "@/components/ui/Tabs";
 import CopyRow from "@/components/ui/CopyRow";
 import Button from "@/components/ui/Button";
+import UriText from "@/components/ui/UriText";
 import { bytes } from "@/lib/format";
 import { jdbcUri, psqlCommand, serviceUri, type Instance } from "@/lib/instances";
 
@@ -55,7 +56,7 @@ function CodeBlock({ value }: { value: string }) {
   return (
     <div className="p-4">
       <pre className="overflow-x-auto rounded-lg border border-line bg-surface-2 p-3 font-mono text-caption text-fg">
-        {value}
+        <UriText value={value} />
       </pre>
       <Button
         variant="secondary"

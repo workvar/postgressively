@@ -41,7 +41,7 @@ export default function Sidebar({
           href="/databases/new"
           title={collapsed ? "New database" : undefined}
           aria-label="New database"
-          className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand text-small font-medium text-white transition-colors duration-150 ease-apple hover:bg-brand-hover"
+          className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-accent text-small font-medium text-accent-fg transition-colors duration-150 ease-apple hover:bg-accent-hover"
         >
           <NavIcon name="plus" />
           {!collapsed && "New database"}

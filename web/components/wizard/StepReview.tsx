@@ -1,6 +1,8 @@
 "use client";
 
 import Badge from "@/components/ui/Badge";
+import UriText from "@/components/ui/UriText";
+import { PASSWORD_PLACEHOLDER } from "@/lib/instances";
 import type { DraftDatabase } from "@/lib/wizard";
 import type { AgentStatus } from "@/lib/types";
 
@@ -65,7 +67,9 @@ export default function StepReview({
       <section>
         <h2 className="mb-2 text-subtitle">Resulting connection string</h2>
         <pre className="overflow-x-auto rounded-lg border border-line bg-surface-2 p-3 font-mono text-caption text-fg">
-          {`postgresql://${draft.owner}:PASSWORD@${host}:${port}/${draft.name || "dbname"}?sslmode=prefer`}
+          <UriText
+            value={`postgresql://${draft.owner}:${PASSWORD_PLACEHOLDER}@${host}:${port}/${draft.name || "dbname"}?sslmode=prefer`}
+          />
         </pre>
       </section>
     </div>

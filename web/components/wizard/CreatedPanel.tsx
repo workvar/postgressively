@@ -5,6 +5,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import CopyRow from "@/components/ui/CopyRow";
 import Panel from "@/components/ui/Panel";
+import { PASSWORD_PLACEHOLDER } from "@/lib/instances";
 import type { AgentStatus, CreateDatabaseResult } from "@/lib/types";
 
 export default function CreatedPanel({
@@ -16,7 +17,7 @@ export default function CreatedPanel({
 }) {
   const host = status?.host ?? "localhost";
   const port = status?.port ?? 5432;
-  const password = result.generatedPassword ?? "PASSWORD";
+  const password = result.generatedPassword ?? PASSWORD_PLACEHOLDER;
   const uri = `postgresql://${result.owner}:${password}@${host}:${port}/${result.name}`;
 
   return (

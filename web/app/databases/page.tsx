@@ -62,7 +62,7 @@ export default function DatabasesPage() {
               Refresh
             </Button>
             <Link href="/databases/new">
-              <Button variant="brand" size="sm">
+              <Button variant="primary" size="sm">
                 New database
               </Button>
             </Link>

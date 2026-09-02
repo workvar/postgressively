@@ -53,7 +53,7 @@ export default function SummaryRail({
       )}
 
       <Button
-        variant="brand"
+        variant="primary"
         size="md"
         className="mt-4 w-full"
         disabled={!canCreate || busy}

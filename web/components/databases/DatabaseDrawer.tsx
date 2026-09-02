@@ -7,6 +7,7 @@ import CopyRow from "@/components/ui/CopyRow";
 import Panel from "@/components/ui/Panel";
 import { api } from "@/lib/api";
 import { bytes } from "@/lib/format";
+import { PASSWORD_PLACEHOLDER } from "@/lib/instances";
 import type { DatabaseDetail, Extension } from "@/lib/types";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
@@ -44,7 +45,7 @@ export default function DatabaseDrawer({
       .catch((e) => setExtError(e.message));
   }, [db.name]);
 
-  const uri = `postgresql://${db.owner}:PASSWORD@${host}:${port}/${db.name}`;
+  const uri = `postgresql://${db.owner}:${PASSWORD_PLACEHOLDER}@${host}:${port}/${db.name}`;
 
   async function drop() {
     setBusy(true);

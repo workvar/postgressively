@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import UriText from "@/components/ui/UriText";
 
 function CopyButton({ value }: { value: string }) {
   const [done, setDone] = useState(false);
@@ -45,12 +46,14 @@ export default function CopyRow({
   secret?: boolean;
 }) {
   const [revealed, setRevealed] = useState(false);
-  const shown = secret && !revealed ? "•".repeat(12) : value;
+  const masked = secret && !revealed;
 
   return (
     <div className="flex items-center gap-3 border-b border-line px-4 py-2.5 last:border-0 hover:bg-surface-hover">
       <span className="w-40 shrink-0 text-small text-fg-muted">{label}</span>
-      <span className="min-w-0 flex-1 truncate font-mono text-caption text-fg">{shown}</span>
+      <span className="min-w-0 flex-1 truncate font-mono text-caption text-fg">
+        {masked ? "•".repeat(12) : <UriText value={value} />}
+      </span>
       {secret && (
         <button
           onClick={() => setRevealed((r) => !r)}
