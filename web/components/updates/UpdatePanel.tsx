@@ -86,21 +86,11 @@ export default function UpdatePanel() {
       )}
 
       {info.available && (
-        <div className="space-y-3">
+        <div className="flex flex-col items-start gap-3">
           {info.notes && (
-            <pre className="max-h-48 overflow-auto rounded-lg border border-line bg-surface-2 p-3 text-caption text-fg-muted whitespace-pre-wrap">
+            <pre className="max-h-48 w-full overflow-auto rounded-lg border border-line bg-surface-2 p-3 text-caption text-fg-muted whitespace-pre-wrap">
               {info.notes}
             </pre>
-          )}
-          {info.htmlUrl && (
-            <a
-              href={info.htmlUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-small text-accent hover:underline"
-            >
-              Release notes on GitHub
-            </a>
           )}
 
           {info.canAutoUpdate ? (
@@ -116,6 +106,17 @@ export default function UpdatePanel() {
                 </pre>
               )}
             </div>
+          )}
+
+          {info.htmlUrl && (
+            <a
+              href={info.htmlUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-small text-accent hover:underline"
+            >
+              Release notes on GitHub
+            </a>
           )}
         </div>
       )}
