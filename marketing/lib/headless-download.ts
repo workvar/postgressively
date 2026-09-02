@@ -4,7 +4,7 @@ import type { SetupMethod, SetupOS } from "@/lib/setup-guides";
 
 export const GITHUB_RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/latest`;
 
-/** Asset filename: postggresively-v1.1.1-linux-amd64.tar.gz */
+/** Asset filename: postggresively-v1.1.2-linux-amd64.tar.gz */
 export function releaseAssetName(tag: string, platform: PlatformId): string {
   const suffix: Record<PlatformId, string> = {
     "darwin-amd64": "darwin-amd64.tar.gz",
